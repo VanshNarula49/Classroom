@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ..                   # Use the project root as build context
+      dockerfile: docker/Dockerfile   # Path to your Dockerfile relative to the project root
+    container_name: classroom-api
+    environment:
+      # Database connection
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=myclassroomdb
+      - DB_USER=avnadmin
+      - DB_PASSWORD=yourpassword
+      
+      # MinIO connection
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_CONSOLE_ENDPOINT=http://minio:9090
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadminpassword
+      
+      # Memcached connection
+      - MEMCACHED_HOST=memcached
+      - MEMCACHED_PORT=11211
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - minio
+      - memcached
+
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: avnadmin
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: myclassroomdb
+    volumes:
+      - ../db-init:/docker-entrypoint-initdb.d  # Mount your SQL initialization scripts
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    command: server /data --console-address ":9090"
+    ports:
+      - "9000:9000"  # S3 API port
+      - "9090:9090"  # MinIO Console port
+    volumes:
+      - minio_data:/data
+
+  memcached:
+    image: memcached:latest
+    container_name: memcached
+    # No ports mapping; accessible only within the Docker network
+
+volumes:
+  minio_data:
