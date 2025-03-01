@@ -32,5 +32,3 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
-
-minio-env/
