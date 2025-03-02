@@ -3,90 +3,126 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');  // Import User model to interact with DB
 const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
+const validator = require('validator');  // Import validator
 
-
-// Register a new user
+// Register a New User
+// Register a New User
 const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
   try {
+    // Validate input
+    if (!name || !email || !password) {
+      throw { status: 400, message: 'All fields (name, email, password) are required' };
+    }
+
+    if (!validator.isEmail(email)) {
+      throw { status: 400, message: 'Invalid email format' };
+    }
+
+    if (password.length < 6) {
+      throw { status: 400, message: 'Password must be at least 6 characters long' };
+    }
+
     // Hash the password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Check if the email already exists (this is handled by raw SQL in User model)
     const newUser = await User.createUser(name, email, hashedPassword);
 
-    // Return success response
+    // Return success response in standardized format
     res.status(201).json({
+      status: 'success',
+      code: 201,
       message: 'User created successfully',
-      user: { name: newUser.name, email: newUser.email },
+      details: 'User has been successfully registered.',
+      data: { name: newUser.name, email: newUser.email },
     });
 
   } catch (error) {
-    // Pass error to the error handler middleware
-    next(error);  // `next(error)` passes control to the error handling middleware
+    next(error);  // Pass error to the error handling middleware
   }
 };
+
+
+
 
 // Login the user
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
+    // Validate input
+    if (!email || !password) {
+      throw { status: 400, message: 'Email and password are required' };
+    }
+
+    if (!validator.isEmail(email)) {
+      throw { status: 400, message: 'Invalid email format' };
+    }
+
     // Find the user by email using the model
     const user = await User.findUserByEmail(email);
     
     if (!user) {
-      // If user is not found, throw a custom error
-      throw { status: 400, message: 'Invalid credentials' };  // Custom error passed to next()
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that enmail"};
     }
 
     // Compare the password with the stored hashed password
     const match = await bcrypt.compare(password, user.password);
     
     if (!match) {
-      throw { status: 400, message: 'Invalid credentials' };  // Custom error passed to next()
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"Password mismatch"};
+
     }
 
     // Generate JWT token
-    const token = jwt.sign({  userId: user.userid, 
+    const token = jwt.sign({ 
+      userId: user.userid, 
       name: user.name,
       email: user.email,
-      role: user.role,}, process.env.JWT_SECRET, {
+    }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRATION,
     });
 
-    // Send the token in the response
-    res.json({ token });
+    // Send success response in standardized format
+    res.status(200).json({
+      status: 'success',
+      code: 200,
+      message: 'Login successful',
+      details: 'User has been successfully logged in.',
+      data: { token },
+    });
 
   } catch (error) {
     next(error);  // Pass error to the error handling middleware
   }
 };
+
+
 const { getCourseById } = require('../models/Course'); 
 const { generateCourseResource } = require('../utils/resourceGenerators');
-// /controllers/UserController.js (profile route example for Course check)
-const coursegen = async () => {
-  try {
-    const rawCourse = await getCourseById('1');
-    if (!rawCourse) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-    // Generate a minimal, enriched Course resource for CASL
-    const course = generateCourseResource(rawCourse);
-    console.log(course)
-   return course
-  } catch (error){throw error}
-}
-  
 
+
+const coursegen = async () => {
+  const rawCourse = await getCourseById('1');
+  if (!rawCourse) {
+    throw { status: 404, message: 'Course not found',origin : "Database" };
+  }
+  // Generate a minimal, enriched Course resource for CASL
+  const course = generateCourseResource(rawCourse);
+  console.log(course);
+  
+  return course;
+};
 
 const profile = [
-  checkAbilityForResource('delete','Course',coursegen),
+  checkAbilityForResource('delete', 'Course', coursegen),
   (req, res) => {
     res.json({ profile: req.user });
   }
 ];
+
 
 module.exports = {
   register,

@@ -2,26 +2,47 @@
 const pool = require('../config/dbConfig');
 
 const getCourseById = async (courseId) => {
-  const courseQuery = 'SELECT * FROM course WHERE courseid = $1';
-  const courseResult = await pool.query(courseQuery, [courseId]);
-  if (courseResult.rows.length === 0) return null;
-  
-  const course = courseResult.rows[0];
-  const participationQuery = 'SELECT userid, role FROM courseparticipation WHERE courseid = $1';
-  const participationResult = await pool.query(participationQuery, [courseId]);
-  
-  const taIds = [];
-  const enrolledStudentIds = [];
-  participationResult.rows.forEach(({ userid, role }) => {
-    if (role.toLowerCase() === 'ta') {
-      taIds.push(userid);
-    } else if (role.toLowerCase() === 'student') {
-      enrolledStudentIds.push(userid);
-    }
-  });
-  course.taIds = taIds;
-  course.enrolledStudentIds = enrolledStudentIds;
-  return course;
+  const query =`SELECT 
+  c.courseid,
+  c.name,
+  c.description,
+  c.createdby,
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Ta'), '{}') AS taIds,
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Student'), '{}') AS enrolledStudentIds,
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Professor'), '{}') AS teacherIds
+FROM course c
+LEFT JOIN courseparticipation cp ON c.courseid = cp.courseid
+WHERE c.courseid = $1
+GROUP BY c.courseid;
+`;
+
+  try {
+    const result = await pool.query(query, [courseId]);
+    if (result.rows.length === 0) return null;
+
+    const course = result.rows[0];
+    return course;
+  } catch (error) {
+    throw error;
+  }
 };
 
-module.exports = { getCourseById };
+
+
+
+const getCoursesByUserId = async (userId) => {
+  const query = `
+    SELECT c.*, cp.role AS userrole
+    FROM public.course c
+    JOIN public.courseparticipation cp ON c.courseid = cp.courseid
+    WHERE cp.userid = $1
+  `;
+  const result = await pool.query(query, [userId]);
+  return result.rows;
+};
+
+
+
+
+
+module.exports = { getCourseById ,getCoursesByUserId};

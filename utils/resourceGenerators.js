@@ -8,13 +8,14 @@
  * @returns {Object} - Minimal course resource.
  */
 function generateCourseResource(dbCourse) {
-    return {
-      courseid: dbCourse.courseid,
-      createdby: dbCourse.createdby, // teacher's user ID
-      taIds: Array.isArray(dbCourse.taIds) ? dbCourse.taIds : [],
-      enrolledStudentIds: Array.isArray(dbCourse.enrolledStudentIds) ? dbCourse.enrolledStudentIds : []
-    };
-  }
+  return {
+    courseid: dbCourse.courseid,
+    createdby: dbCourse.createdby,  // Updated field: creator's user ID
+    taIds: Array.isArray(dbCourse.taids) ? dbCourse.taids : [],
+    enrolledStudentIds: Array.isArray(dbCourse.enrolledstudentids) ? dbCourse.enrolledstudentids : [],
+    teacherIds: Array.isArray(dbCourse.teacherids) ? dbCourse.teacherids : []  // Updated to include teachers
+  };
+}
   
   /**
    * Generate a minimal Assignment resource.

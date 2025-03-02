@@ -10,8 +10,13 @@ function defineAbilitiesFor(user) {
 
   // Permissions on the Course resource depend solely on the courseRole
   if (user.courseRole === 'teacher') {
-    can(['read', 'update', 'delete'], 'Course', { createdby: user.userId });
-    can(['add', 'remove'], 'CourseParticipant', { course: { createdby: user.userId } });
+    can(['read', 'update'], 'Course', {
+      $or: [
+        { createdby: user.userId },
+        { teacherIds: { $in: [user.userId] } }
+      ]
+    });
+    can('delete', 'Course', { createdby: user.userId });
   }
   if (user.courseRole === 'ta') {
     can('read', 'Course', { taIds: { $in: [user.userId] } });
@@ -20,6 +25,43 @@ function defineAbilitiesFor(user) {
     can('read', 'Course', { enrolledStudentIds: { $in: [user.userId] } });
     can('enroll', 'Course');
   }
+if (user.courseRole === 'teacher') {
+  can(['update', 'add', 'remove'], 'CourseParticipant', (subject) => {
+    // Ensure the subject has a course object with a createdby field.
+    if (!subject.course || typeof subject.course.createdby === 'undefined') {
+      return false;
+    }
+    // The teacher must be part of the course either as the creator or be listed in teacherIds.
+    const isProfessorInCourse =
+      subject.course.createdby === user.userId ||
+      (Array.isArray(subject.course.teacherIds) &&
+        subject.course.teacherIds.includes(user.userId));
+    // Disallow updating/adding/removing if the target is the creator.
+    return isProfessorInCourse && subject.course.createdby !== subject.userid;
+  });
+}
+  // === Course Participation ===
+  if (user.courseRole === 'teacher') {
+    can(['update', 'add', 'remove'], 'CourseParticipant', (subject) => {
+      // Ensure the subject has a course object with a createdby field.
+      if (!subject.course || typeof subject.course.createdby === 'undefined') {
+        return false;
+      }
+      // The teacher must be part of the course either as the creator or be listed in teacherIds.
+      const isProfessorInCourse =
+        subject.course.createdby === user.userId ||
+        (Array.isArray(subject.course.teacherIds) &&
+          subject.course.teacherIds.includes(user.userId));
+      // Disallow updating/adding/removing if the target is the creator.
+      return isProfessorInCourse && subject.course.createdby !== subject.userid;
+    });
+  }
+  
+
+
+
+
+
 
   // === Assignment Routes ===
   if (user.courseRole === 'teacher' || user.courseRole === 'ta') {

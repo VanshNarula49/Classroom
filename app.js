@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const passport = require('passport');
 const userRoutes = require('./routes/userRoutes');
+const coursesRoutes = require('./routes/courseRoutes')
 const pool = require('./config/dbConfig'); // Using pg connection pool
 const errorHandler = require('./middlewares/errorMiddleware'); // Import error handler
 require('dotenv').config();
@@ -20,6 +21,7 @@ require('./config/Passport')(passport);  // Initialize Passport.js
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/courses',coursesRoutes)
 
 // Test DB connection before starting the server
 pool.connect()

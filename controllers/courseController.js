@@ -1,27 +1,20 @@
-// /controllers/CourseController.js
-const Course = require('../models/Course');
+// controllers/course.controller.js
+const { getCoursesByUserId } = require('../models/Course');
 
-const createCourse = async (req, res) => {
-  const { name, code, description } = req.body;
-  
+const getCourses = async (req, res, next) => {
   try {
-    const course = await Course.create({ name, code, description, createdby: req.user.userid });
-    res.status(201).json(course);
+    console.log(req.user.userId);
+    
+    const courses = await getCoursesByUserId(req.user.userId);
+    res.json({
+      status: 'success',
+      code: 200,
+      message: 'Courses fetched successfully.',
+      data: { courses }
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error creating course' });
+    next(error);
   }
 };
 
-const getCourses = async (req, res) => {
-  try {
-    const courses = await Course.findAll();
-    res.status(200).json(courses);
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching courses' });
-  }
-};
-
-module.exports = {
-  createCourse,
-  getCourses,
-};
+module.exports = { getCourses };
