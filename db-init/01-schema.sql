@@ -71,6 +71,7 @@ CREATE TABLE public.announcement (
 );
 
 
+
 ALTER TABLE public.announcement OWNER TO avnadmin;
 
 --

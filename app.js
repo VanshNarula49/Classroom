@@ -31,7 +31,7 @@ pool.connect()
   .catch((error) => {
     console.error('Unable to connect to the database:', error);
   });
-
+  
 // Apply error handling middleware (this will catch any errors)
 app.use(errorHandler);
 

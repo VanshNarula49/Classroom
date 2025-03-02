@@ -105,13 +105,12 @@ const { generateCourseResource } = require('../utils/resourceGenerators');
 
 
 const coursegen = async () => {
-  const rawCourse = await getCourseById('1');
+  const rawCourse = await getCourseById('8');
   if (!rawCourse) {
     throw { status: 404, message: 'Course not found',origin : "Database" };
   }
   // Generate a minimal, enriched Course resource for CASL
   const course = generateCourseResource(rawCourse);
-  console.log(course);
   
   return course;
 };
