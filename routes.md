@@ -2,7 +2,7 @@
 These routes are used for logging in and registering users.
 
 - **POST `/api/auth/register`**  
-  - **Role**: Any user (Admin/Teacher)  
+  - **Role**: Any user 
   - **Description**: Register a new user (teacher, student, or TA).  
   - **ABAC**: Only **admin** can create other users; regular users can register themselves.
 

@@ -9,7 +9,6 @@ function defineAbilitiesFor(user) {
 
   // Permissions on the Course resource depend solely on the courseRole
   if (user.courseRole === 'teacher') {
-    console.log("ran");
 
     // Teacher can read or update a Course if they are the creator or listed as a teacher
     can('read', 'Course', { createdby: user.userId });
