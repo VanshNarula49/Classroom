@@ -100,27 +100,42 @@ const login = async (req, res, next) => {
 };
 
 
-const { getCourseById } = require('../models/Course'); 
-const { generateCourseResource } = require('../utils/resourceGenerators');
+// const { getCourseById } = require('../models/Course'); 
+// const { generateCourseResource } = require('../utils/resourceGenerators');
 
 
-const coursegen = async () => {
-  const rawCourse = await getCourseById('8');
-  if (!rawCourse) {
-    throw { status: 404, message: 'Course not found',origin : "Database" };
-  }
-  // Generate a minimal, enriched Course resource for CASL
-  const course = generateCourseResource(rawCourse);
+// const coursegen = async () => {
+//   const rawCourse = await getCourseById('8');
+//   if (!rawCourse) {
+//     throw { status: 404, message: 'Course not found',origin : "Database" };
+//   }
+//   // Generate a minimal, enriched Course resource for CASL
+//   const course = generateCourseResource(rawCourse);
   
-  return course;
-};
+//   return course;
+// };
+// Get Profile
+const profile = async (req,res,next)=>{
+  try{
+    const userData = await User.findUserByEmail(req.user.email);
+    
+    if (!userData) {
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that enmail"};
+    }
+    const {password, ...user } = userData;
+    res.status(200).json({
+      status: 'success',
+      code: 200,
+      message: 'Profile Found',
+      details: 'User Profile has been successfully found and Details returned.',
+      data: { user },
+    });
 
-const profile = [
-  checkAbilityForResource('delete', 'Course', coursegen),
-  (req, res) => {
-    res.json({ profile: req.user });
   }
-];
+  catch(error){
+    next(error);
+  }
+};
 
 
 module.exports = {
