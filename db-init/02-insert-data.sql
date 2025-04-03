@@ -21,9 +21,9 @@ SET row_security = off;
 --
 
 COPY public."User" (userid, name, email, password, createdat) FROM stdin;
-1	Gail Harrison	1@example.org	"$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa"	2025-02-16 18:56:27
-2	Michelle George	2@example.com	"$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa"	2025-02-16 18:56:27
-3	Mr. Scott Kim	3@example.org	"$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa"	2025-02-16 18:56:27
+1	Gail Harrison	1@example.org	$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa	2025-02-16 18:56:27
+2	Michelle George	2@example.com	$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa	2025-02-16 18:56:27
+3	Mr. Scott Kim	3@example.org	$2a$10$i2aWADQWjph9xQIza8P5tumy0fJVtg30zIPDjE.x1Ymn6R9fJ0TSa	2025-02-16 18:56:27
 4	John Shepard	reginald64@example.org	l!4dXZ2d$u61	2025-02-16 18:56:27
 5	Timothy Smith	torresglenn@example.net	0yMHyrbf!J$V	2025-02-16 18:56:27
 6	Fernando Meyer	susanmcclain@example.net	&@7AQuiwDQTW	2025-02-16 18:56:27
