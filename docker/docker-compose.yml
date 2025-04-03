@@ -37,6 +37,8 @@ services:
       POSTGRES_USER: avnadmin
       POSTGRES_PASSWORD: yourpassword
       POSTGRES_DB: myclassroomdb
+    ports:
+      - "5432:5432"
     volumes:
       - ../db-init:/docker-entrypoint-initdb.d  # Mount your SQL initialization scripts
 

@@ -65,7 +65,7 @@ const login = async (req, res, next) => {
     const user = await User.findUserByEmail(email);
     
     if (!user) {
-      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that enmail"};
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that email"};
     }
 
     // Compare the password with the stored hashed password
@@ -120,7 +120,7 @@ const profile = async (req,res,next)=>{
     const userData = await User.findUserByEmail(req.user.email);
     
     if (!userData) {
-      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that enmail"};
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that email"};
     }
     const {password, ...user } = userData;
     res.status(200).json({
