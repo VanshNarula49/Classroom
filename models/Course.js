@@ -70,10 +70,14 @@ GROUP BY c.courseid, c.name, c.description, c.createdby, createdbyUser.name;
 
 const getCoursesByUserId = async (userId) => {
   const query = `
-    SELECT c.*, cp.role AS userrole
-    FROM public.course c
-    JOIN public.courseparticipation cp ON c.courseid = cp.courseid
-    WHERE cp.userid = $1
+   SELECT 
+    c.*,
+    u.name AS creator_name,
+    cp.role AS userrole
+FROM public.course c
+JOIN public.courseparticipation cp ON c.courseid = cp.courseid
+LEFT JOIN public."User" u ON c.createdby = u.userid
+WHERE cp.userid = $1
   `;
   const result = await pool.query(query, [userId]);
   return result.rows;

@@ -13,7 +13,6 @@ const { log } = require('console');
 
 const getCourses = async (req, res, next) => {
   try {
-    console.log(req.user.userId);
     
     const courses = await getCoursesByUserId(req.user.userId);
     res.json({
