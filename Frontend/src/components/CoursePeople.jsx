@@ -59,8 +59,8 @@ const CoursePeople = () => {
           <div className="flex flex-col h-full w-full">
             <Card className="max-w-full flex-grow">
               <CardHeader className="flex flex-row justify-between items-center gap-4 flex-wrap">
-                <CardTitle className="text-2xl">Course Members</CardTitle>
-                <div className="relative w-full max-w-xs">
+                {/* <CardTitle className="text-2xl">Course Members</CardTitle> */}
+                <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"

@@ -28,8 +28,8 @@ const CourseLayout = () => {
         <div className="flex justify-center">
           <TabsList className="bg-white shadow-sm w-full max-w-xl justify-center">
             <TabsTrigger value="stream">Stream</TabsTrigger>
-            <TabsTrigger value="people">People</TabsTrigger>
             <TabsTrigger value="materials">Materials</TabsTrigger>
+            <TabsTrigger value="people">People</TabsTrigger>
           </TabsList>
         </div>
       </Tabs>

@@ -1,9 +1,11 @@
-// src/components/CourseMaterial.jsx
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Toaster } from "sonner";
-import MaterialCard from "./ui/material-card";
+import axiosInstance from "@/utils/axiosInstance";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { toast, Toaster } from "sonner";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MaterialTable from "./ui/matrials-table";
 
 const CourseMaterial = () => {
   const { courseId } = useParams();
@@ -11,42 +13,58 @@ const CourseMaterial = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulated API call with dummy materials
+    // Simulated data
     setTimeout(() => {
       setMaterials([
         {
-          materialid: 1,
-          title: "Lecture 1: Introduction to Algorithms",
-          filepath: "https://example.com/lecture1.pdf",
-          createdby: "Prof. Alan Turing",
-          createdat: "2025-04-10T10:00:00Z",
+          id: 1,
+          title: "Week 1 - Introduction to AI",
+          createdby: "Prof. John Doe",
+          createdat: "2024-04-05T10:00:00Z",
+          filepath: "https://example.com/ai_intro.pdf",
         },
         {
-          materialid: 2,
-          title: "Week 1 Assignment",
-          filepath: "https://example.com/assignment1.docx",
-          createdby: "TA: Grace Hopper",
-          createdat: "2025-04-11T14:30:00Z",
+          id: 2,
+          title: "Lecture 2 - Neural Networks",
+          createdby: "Prof. Jane Smith",
+          createdat: "2024-04-07T14:30:00Z",
+          filepath: "https://example.com/nn_lecture.pdf",
         },
       ]);
       setLoading(false);
     }, 500);
+
+    // Uncomment for real data
+    // const fetchMaterials = async () => {
+    //   try {
+    //     const res = await axiosInstance.get(`${API_URL}/api/materials/${courseId}`);
+    //     setMaterials(res.data.materials);
+    //   } catch (err) {
+    //     toast.error("Failed to load materials.");
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+    // fetchMaterials();
   }, [courseId]);
 
   return (
-    <div className="flex-1 min-w-full max-w-fit mx-auto px-4 py-6">
-
-      {loading ? (
-        <p className="text-center text-gray-500">Loading materials...</p>
-      ) : materials.length === 0 ? (
-        <p className="text-center text-gray-400">No materials uploaded yet.</p>
-      ) : (
-        <div className="flex-1 w-full h-screen justify-center items-center overflow-auto bg-background">
-          {materials.map((material) => (
-            <MaterialCard key={material.materialid} material={material} />
-          ))}
-        </div>
-      )}
+    <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border">
+      <Toaster position="top-right" richColors />
+      <Card className="w-full">
+        {/* <CardHeader>
+          <CardTitle className="text-2xl">Course Materials</CardTitle>
+        </CardHeader> */}
+        <CardContent>
+          {loading ? (
+            <p className="text-muted-foreground">Loading materials...</p>
+          ) : materials.length === 0 ? (
+            <p className="text-muted-foreground">No materials uploaded yet.</p>
+          ) : (
+            <MaterialTable materials={materials} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
