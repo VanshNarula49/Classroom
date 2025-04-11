@@ -1,6 +1,6 @@
 import axiosInstance from "@/utils/axiosInstance";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL ||  "http://localhost:3000";
 
 export const getUserClasses = async() => {
     const courses = await axiosInstance.get(`${API_URL}/api/courses`);
