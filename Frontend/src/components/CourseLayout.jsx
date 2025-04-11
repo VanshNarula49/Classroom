@@ -21,7 +21,7 @@ const CourseLayout = () => {
   };
 
   return (
-    <div className="w-full h-full px-6 py-4">
+    <div className="flex-row w-full h-full px-6 py-4">
       <Tabs value={currentTab} onValueChange={handleTabChange} className="mb-6">
         <TabsList className="bg-white shadow-sm">
           <TabsTrigger value="stream">Stream</TabsTrigger>

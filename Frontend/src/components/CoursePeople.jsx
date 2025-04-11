@@ -50,7 +50,7 @@ const CoursePeople = () => {
       ));
   
     return (
-      <div className="w-full h-screen p-6 overflow-auto bg-background box-border">
+      <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border">
         <Toaster position="top-right" richColors />
   
         {loading ? (

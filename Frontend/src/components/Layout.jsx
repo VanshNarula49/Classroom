@@ -25,7 +25,7 @@ export default function Layout() {
         <AppSidebar />
         <div className="flex flex-col flex-1 min-w-0">
           <Header />
-          <main className="flex-1 overflow-y-auto p-6 max-w-full mx-auto my-5">
+          <main className="flex-1 justify-center items-center overflow-y-auto p-6 max-w-full mx-auto my-5 min-w-full">
             <Outlet />
           </main>
         </div>
