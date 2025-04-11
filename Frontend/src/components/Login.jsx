@@ -1,10 +1,12 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser } from "../services/authServices";
+import { loginUser, setUserSession } from "../services/authServices";
 import { AuthContext } from "../context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
 import { LoginForm } from "@/components/ui/login-form";
+import { useUser } from "@/hooks/useUser";
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,10 +30,13 @@ const Login = () => {
     try {
       const token = await loginUser(email, password);
       localStorage.setItem("token", token);
-
+      setUserSession(token);
       toast.success("Login Succesful!");
       setTimeout(() => {
+        
         setToken(token);
+        
+        
       }, 700);
       
     } catch (err) {

@@ -22,6 +22,8 @@ const items = [
 export function AppSidebar() {
   const handleLogout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("user");
+
     window.location.href = "/login"
   }
   return (
