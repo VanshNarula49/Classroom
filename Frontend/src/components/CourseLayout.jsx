@@ -1,5 +1,3 @@
-// src/components/courses/CourseLayout.jsx
-
 import { useParams, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -21,16 +19,22 @@ const CourseLayout = () => {
   };
 
   return (
-    <div className="flex-row w-full h-full px-6 py-4">
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="mb-6">
-        <TabsList className="bg-white shadow-sm">
-          <TabsTrigger value="stream">Stream</TabsTrigger>
-          <TabsTrigger value="people">People</TabsTrigger>
-          <TabsTrigger value="materials">Materials</TabsTrigger>
-        </TabsList>
+    <div className="w-full h-full px-6 py-4 flex flex-col items-center">
+      <Tabs
+        value={currentTab}
+        onValueChange={handleTabChange}
+        className="mb-6 w-full max-w-4xl"
+      >
+        <div className="flex justify-center">
+          <TabsList className="bg-white shadow-sm w-full max-w-xl justify-center">
+            <TabsTrigger value="stream">Stream</TabsTrigger>
+            <TabsTrigger value="people">People</TabsTrigger>
+            <TabsTrigger value="materials">Materials</TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
 
-      <div className="animate-fadeIn">
+      <div className="animate-fadeIn w-full max-w-6xl">
         <Outlet />
       </div>
     </div>
