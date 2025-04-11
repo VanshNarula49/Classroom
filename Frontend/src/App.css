@@ -10,8 +10,6 @@
   margin: 0;
 }
 
-
-
 /* Logo styles */
 .logo {
   height: 6em;
@@ -191,7 +189,7 @@
   :root {
     --sidebar-width: calc(18rem); /* Increase sidebar width for larger screens */
   }
-  
+
   .sidebar-content {
     padding: calc(var(--radius-lg) + var(--radius-md));
   }
