@@ -6,9 +6,9 @@ const CourseLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentTab = location.pathname.endsWith("/people")
+  const currentTab = location.pathname.includes("/people")
     ? "people"
-    : location.pathname.endsWith("/materials")
+    : location.pathname.includes("/materials")
     ? "materials"
     : "stream";
 
