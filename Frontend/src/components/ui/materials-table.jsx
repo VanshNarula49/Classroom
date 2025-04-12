@@ -28,7 +28,7 @@ import {
               <TableCell>{material.createdby}</TableCell>
               <TableCell>{new Date(material.createdat).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
-                <Link to={`/materials/${material.id}`}>
+                <Link to={`${material.id}`}>
                     <Button variant="outline" size="sm">View</Button>
                 </Link>
               </TableCell>

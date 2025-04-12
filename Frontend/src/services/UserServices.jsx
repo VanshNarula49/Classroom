@@ -11,3 +11,8 @@ export const getClass = async(id) => {
     const userClass = await axiosInstance.get(`${API_URL}/api/courses/${id}`);
     return userClass.data.data;
 }
+
+export const getMaterials = async(id) => {
+    const userClass = await axiosInstance.get(`${API_URL}/api/courses/${id}`);
+    return userClass.data.data;
+}
