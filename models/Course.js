@@ -112,6 +112,52 @@ const isCourseCodeUnique = async (code) => {
   const result = await pool.query(query, [code]);
   return result.rows[0].count == 0;
 };
+const stream = async (courseId) => {
+  // The SQL query uses UNION ALL to combine rows from three tables.
+  // Each SELECT returns the following columns (adjusted as needed):
+  //   id       - the primary key of the row from its table.
+  //   type     - a literal indicating the type (announcement, assignment, or material).
+  //   courseid - the course id.
+  //   title    - the title of the item.
+  //   createdby- the user id who created the item.
+  //   createdat- the timestamp when the item was created.
+  const query = `
+    SELECT announcementid AS id,
+           'announcement' AS type,
+           courseid,
+           title,
+           createdby,
+           createdat
+      FROM announcement
+     WHERE courseid = $1
+    UNION ALL
+    SELECT assignmentid AS id,
+           'assignment' AS type,
+           courseid,
+           title,
+           createdby,
+           createdat
+      FROM assignment
+     WHERE courseid = $1
+    UNION ALL
+    SELECT materialid AS id,
+           'material' AS type,
+           courseid,
+           title,
+           createdby,
+           createdat
+      FROM material
+     WHERE courseid = $1
+    ORDER BY createdat DESC;
+  `;
+  
+  try {
+    const result = await pool.query(query, [courseId]);
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching stream data:', error);
+    throw error;
+  }
+};
 
-
-module.exports = { getCourseById ,getCourseDetailsbyId ,getCoursesByUserId, createCourse,isCourseCodeUnique};
+module.exports = { getCourseById ,getCourseDetailsbyId ,getCoursesByUserId, createCourse,isCourseCodeUnique,stream};
