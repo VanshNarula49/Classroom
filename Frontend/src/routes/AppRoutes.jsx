@@ -11,7 +11,8 @@ import CourseStream from "@/components/CourseStream";
 import CoursePeople from "@/components/CoursePeople";
 import CourseMaterial from "@/components/CourseMaterial";
 import MaterialDetail from "@/components/Material";
-import AssignmentDetailsPage from "@/components/Assignment";
+import CourseAssignment from "@/components/CourseAssignments";
+import Assignment from "@/components/Assignment";
 
 const AppRoutes = () => {
   const { token } = useContext(AuthContext);
@@ -34,7 +35,8 @@ const AppRoutes = () => {
               <Route path="people" element={<CoursePeople />} />
               <Route path="materials" element={<CourseMaterial />} />
               <Route path="materials/:materialId" element={<MaterialDetail />} />
-              <Route path="assignment" element={<AssignmentDetailsPage />} />
+              <Route path="assignments" element={<CourseAssignment />} />
+              <Route path="assignments/:assignmentId" element={<Assignment />} />
         </Route>
 
         <Route index element={<Navigate to="/dashboard" />} />

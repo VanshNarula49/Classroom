@@ -1,65 +1,55 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FileText, Link, Clock, User } from "lucide-react";
+import { Calendar, FileText, Clock, User, ExternalLink } from "lucide-react";
+import axiosInstance from "@/utils/axiosInstance";
+import { toast, Toaster } from "sonner";
 import SubmissionDrawer from './SubmissionDrawer';
-import axios from 'axios';
 
-const AssignmentDetailsPage = () => {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+const Assignment = () => {
+  const { assignmentId } = useParams();
+  const location = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submission, setSubmission] = useState(null);
   
-  const assignmentId = "assign123"; // This would come from route params in a real app
-  const studentId = "student456"; // This would come from auth context in a real app
-  
   useEffect(() => {
-    // Fetch assignment details
-    const fetchAssignmentData = async () => {
-      try {
-        setLoading(true);
-        // In a real app, this would be an API call
-        // const response = await axios.get(`/api/assignments/${assignmentId}`);
-        // setAssignment(response.data);
-        
-        // Mock data for demonstration
-        setAssignment({
-          assignmentId: assignmentId,
-          title: "Research Paper on Climate Change",
-          description: "Write a 5-page research paper on the effects of climate change on marine ecosystems. Include at least 5 academic sources.",
-          dueDate: "2025-04-20T23:59:00",
-          resources: [
-            { id: 1, name: "Research Guidelines.pdf", url: "#" },
-            { id: 2, name: "Citation Format.docx", url: "#" }
-          ],
-          assignmentType: "Essay",
-          gradeRelease: "After Submission",
-          defaultGrade: 100,
-          courseId: "course789",
-          createdBy: "Professor Smith",
-          createdAt: "2025-04-01T10:00:00"
-        });
-        
-        // Check if student has already submitted
-        // const submissionResponse = await axios.get(`/api/submissions?assignmentId=${assignmentId}&studentId=${studentId}`);
-        // if (submissionResponse.data.length > 0) {
-        //   setSubmission(submissionResponse.data[0]);
-        // }
-        
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load assignment details");
-        setLoading(false);
-        console.error(err);
-      }
-    };
-    
-    fetchAssignmentData();
-  }, [assignmentId, studentId]);
+    // Get assignment from location state
+    if (location.state?.assignment) {
+      setAssignment(location.state.assignment);
+      setLoading(false);
+    } else {
+      // Fallback in case the page is accessed directly without state
+      const fetchAssignmentDetails = async () => {
+        try {
+          setLoading(true);
+          const response = await axiosInstance.get(`${API_URL}/api/assignment/details/${assignmentId}`);
+          setAssignment(response.data.data);
+        } catch (err) {
+          setError("Failed to load assignment details");
+          toast.error(
+            <div align="left">
+              <strong>Failed to load assignment details</strong>
+              <br />
+              {err.response?.data?.message || "Could not retrieve assignment details"}
+            </div>
+          );
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchAssignmentDetails();
+    }
+  }, [assignmentId, location.state]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -85,133 +75,122 @@ const AssignmentDetailsPage = () => {
     }
   };
 
+  const handleSubmitClick = () => {
+    setIsDrawerOpen(true);
+  };
+  
+  const handleViewResource = () => {
+    if (assignment.resources) {
+      window.open(assignment.resources, '_blank');
+    } else {
+      toast.error("No resource URL available");
+    }
+  };
+
   if (loading) return <div className="flex justify-center items-center h-64">Loading assignment details...</div>;
   if (error) return <div className="text-red-500 p-4">{error}</div>;
   if (!assignment) return <div className="p-4">Assignment not found</div>;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Assignment Details</h1>
-        <Button 
-          variant="outline" 
-          onClick={() => setIsDrawerOpen(true)}
-          className="border-black hover:bg-gray-100"
-          disabled={!!submission}
-        >
-          {submission ? "View Submission" : "Submit Assignment"}
-        </Button>
-      </div>
+    <div className="container mx-auto py-6">
+      <Toaster position="top-right" richColors />
       
-      <Card className="mb-8 border-black">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl">{assignment.title}</CardTitle>
-              <CardDescription className="flex items-center mt-1">
-                <User className="h-4 w-4 mr-1" /> {assignment.createdBy}
-              </CardDescription>
+      <Card className="mx-auto max-w-4xl border-black">
+        {/* Header with title and due date */}
+        <CardHeader className="pb-4">
+          <div className="flex flex-col space-y-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl font-bold">{assignment.title}</CardTitle>
             </div>
-            <Badge variant="outline" className="border-black">
-              {assignment.defaultGrade} Points
-            </Badge>
+            
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1" /> 
+                <span>Created by {assignment.creator_name}</span>
+              </div>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                <span>Due: {formatDate(assignment.duedate)}</span>
+              </div>
+            </div>
           </div>
         </CardHeader>
         
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-gray-700">{assignment.description}</p>
-            </div>
-            
-            <div className="flex items-center text-sm text-gray-600">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>Due: {formatDate(assignment.dueDate)}</span>
-            </div>
-            
-            <div className="flex items-center text-sm text-gray-600">
-              <Badge variant="secondary" className="mr-2">
-                {assignment.assignmentType}
-              </Badge>
-              <span>Grade Release: {assignment.gradeRelease}</span>
-            </div>
-            
-            <Separator className="my-4 bg-gray-300" />
-            
-            <div>
-              <h3 className="font-semibold mb-2">Resources</h3>
-              {assignment.resources && assignment.resources.length > 0 ? (
-                <ul className="space-y-2">
-                  {assignment.resources.map(resource => (
-                    <li key={resource.id} className="flex items-center">
-                      <FileText className="h-4 w-4 mr-2" />
-                      <a href={resource.url} className="text-gray-700 hover:underline">
-                        {resource.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">No resources provided</p>
-              )}
+        <CardContent className="pt-0">
+          {/* Description */}
+          <div className="mb-6">
+            <p className="text-gray-700">{assignment.description}</p>
+          </div>
+          
+          <Separator className="my-5" />
+          
+          {/* Resources */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Resources</h3>
+            {assignment.resources ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleViewResource}
+                className="flex items-center"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                View Resource
+              </Button>
+            ) : (
+              <p className="text-gray-500">No resources provided</p>
+            )}
+          </div>
+          
+          <Separator className="my-5" />
+          
+          {/* Submission section */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Submission</h3>
+                <p className="text-gray-600">
+                  Status: <span className="font-medium">
+                    {submission ? "Submitted" : "Not Submitted"}
+                  </span>
+                </p>
+                {submission ? (
+                  <p className="text-gray-600 text-sm mt-1">
+                    Submitted on: <span className="font-medium">{formatDate(submission.submittedDate)}</span>
+                  </p>
+                ) : (
+                  <p className="text-gray-600 text-sm mt-1">
+                    Due in: <span className="font-medium">{getTimeRemaining(assignment.duedate)}</span>
+                  </p>
+                )}
+              </div>
+              <Button 
+                onClick={handleSubmitClick}
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                {submission ? "View Submission" : "Submit Assignment"}
+              </Button>
             </div>
           </div>
         </CardContent>
         
-        <CardFooter className="text-sm text-gray-500 border-t border-gray-200 pt-4">
+        <CardFooter className="text-sm text-gray-500 border-t pt-4">
           <div className="flex items-center">
             <Calendar className="h-4 w-4 mr-1" />
-            <span>Created on {formatDate(assignment.createdAt)}</span>
+            <span>Created on {formatDate(assignment.createdat)}</span>
           </div>
         </CardFooter>
       </Card>
-      
-      {/* Submission Status Card */}
-      <Card className="border-black">
-        <CardHeader>
-          <CardTitle className="text-xl">Submission Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600">
-                Status: <span className="font-medium">
-                  {submission ? "Submitted" : "Not Submitted"}
-                </span>
-              </p>
-              {submission ? (
-                <p className="text-gray-600 mt-1">
-                  Submitted on: <span className="font-medium">{formatDate(submission.submittedDate)}</span>
-                </p>
-              ) : (
-                <p className="text-gray-600 mt-1">
-                  Due in: <span className="font-medium">{getTimeRemaining(assignment.dueDate)}</span>
-                </p>
-              )}
-            </div>
-            <Button 
-              onClick={() => setIsDrawerOpen(true)}
-              className="bg-black text-white hover:bg-gray-800"
-            >
-              {submission ? "View Submission" : "Submit Assignment"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Submission Drawer Component */}
       <SubmissionDrawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)}
-        assignmentId={assignment.assignmentId}
+        assignmentId={assignment.assignmentid}
         assignmentTitle={assignment.title}
         existingSubmission={submission}
-        studentId={studentId}
         onSubmissionComplete={(newSubmission) => setSubmission(newSubmission)}
       />
     </div>
   );
 };
 
-export default AssignmentDetailsPage;
+export default Assignment;

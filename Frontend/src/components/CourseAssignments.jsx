@@ -5,19 +5,19 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import { toast, Toaster } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import MaterialTable from "./ui/materials-table";
+import AssignmentTable from "./ui/assignment-table";
 
-const CourseMaterial = () => {
+const CourseAssignment = () => {
   const { courseId } = useParams();
-  const [materials, setMaterials] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [courseName, setCourseName] = useState("");
 
   useEffect(() => {
-    const fetchMaterials = async () => { 
+    const fetchAssignments = async () => { 
       try {
-        const res = await axiosInstance.get(`${API_URL}/api/material/${courseId}`);
-        setMaterials(res.data.data);
+        const res = await axiosInstance.get(`${API_URL}/api/assignments/${courseId}`);
+        setAssignments(res.data.data);
         
         // Optionally fetch course name if available in your API
         if (res.data.course_name) {
@@ -26,9 +26,9 @@ const CourseMaterial = () => {
       } catch (err) {
         toast.error(
           <div align="left">
-            <strong>Failed to load materials</strong>
+            <strong>Failed to load assignments</strong>
             <br />
-            {err.response?.data?.message || "Could not retrieve course materials"}
+            {err.response?.data?.message || "Could not retrieve course assignments"}
           </div>
         );
       } finally {
@@ -36,20 +36,23 @@ const CourseMaterial = () => {
       }
     };
     
-    fetchMaterials();
+    fetchAssignments();
   }, [courseId]);
 
   return (
     <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border">
       <Toaster position="top-right" richColors />
       <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{courseName ? `Assignments for ${courseName}` : 'Course Assignments'}</CardTitle>
+        </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground p-4">Loading materials...</p>
-          ) : materials.length === 0 ? (
-            <p className="text-muted-foreground p-4">No materials uploaded yet for this course.</p>
+            <p className="text-muted-foreground p-4">Loading assignments...</p>
+          ) : assignments.length === 0 ? (
+            <p className="text-muted-foreground p-4">No assignments created yet for this course.</p>
           ) : (
-            <MaterialTable materials={materials} />
+            <AssignmentTable assignments={assignments} />
           )}
         </CardContent>
       </Card>
@@ -57,4 +60,4 @@ const CourseMaterial = () => {
   );
 };
 
-export default CourseMaterial;
+export default CourseAssignment;

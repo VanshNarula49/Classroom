@@ -58,8 +58,6 @@ export default function StreamView() {
     <div className="flex-1 w-full max-w-3xl mx-auto p-4">
       <Toaster position="top-right" richColors />
       
-      <h2 className="text-2xl font-medium mb-6">{courseName || "Course Stream"}</h2>
-      
       <div className="flex flex-col space-y-3 w-full">
         {streamItems.map((item) => {
           switch (item.type) {
