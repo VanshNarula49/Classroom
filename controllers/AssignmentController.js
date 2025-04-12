@@ -1,32 +1,58 @@
-// /controllers/AssignmentController.js
-const Assignment = require('../models/Assignment');
+// controllers/assignment.controller.js
 
-const createAssignment = async (req, res) => {
-  const { title, description, duedate, courseid } = req.body;
-  
-  try {
-    const assignment = await Assignment.create({ title, description, duedate, courseid, createdby: req.user.userid });
-    res.status(201).json(assignment);
-  } catch (error) {
-    res.status(500).json({ error: 'Error creating assignment' });
+const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
+const { getAssignmentsByCourseId } = require('../models/Assignment'); // adjust path if needed
+const { generateCourseResource } = require('../utils/resourceGenerators');
+const {getCourseById} = require('../models/Course');
+/**
+ * Loader function for the assignments endpoint.
+ * It retrieves the course by ID and returns a minimal resource object
+ * that is used by the CASL middleware to enforce permissions.
+ *
+ * Expected to return an object with a key "course", so that CASL rules
+ * on "Assignment" (which reference assignment.course) work properly.
+ */
+const assignmentCourseGen = async (req) => {
+  if (!req.params || !req.params.id) {
+    throw { status: 400, message: 'Course ID is required', origin: 'AssignmentController' };
   }
-};
-
-const getAssignments = async (req, res) => {
-  try {
-    const assignments = await Assignment.findAll();
-    res.status(200).json(assignments);
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching assignments' });
+  const courseId = req.params.id;
+  if (isNaN(courseId)) {
+    throw { status: 400, message: 'Course ID must be a valid number', origin: 'AssignmentController' };
   }
+  const rawCourse = await getCourseById(courseId);
+  if (!rawCourse) {
+    throw { status: 404, message: 'Course not found', origin: 'Database' };
+  }
+  // Generate a minimal course resource for CASL
+  const course = generateCourseResource(rawCourse);
+  // Return an object with property "course" as expected by CASL rules for Assignment
+  return { course };
 };
 
-const submitAssignment = async (req, res) => {
-  // Logic for submitting an assignment
-};
+/**
+ * Controller to get all assignments for a given course.
+ * Uses a CASL middleware to ensure the current user is allowed to read assignments
+ * for the course.
+ *
+ * Route: GET /courses/:id/assignments
+ */
+const getAssignments = [
+  checkAbilityForResource('read', 'Assignment', assignmentCourseGen),
+  async (req, res, next) => {
+    try {
+      const courseId = req.params.id;
+      const assignments = await getAssignmentsByCourseId(courseId);
+      res.json({
+        status: 'success',
+        code: 200,
+        message: 'Assignments fetched successfully.',
+        data: assignments
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
 
-module.exports = {
-  createAssignment,
-  getAssignments,
-  submitAssignment,
-};
+module.exports = { getAssignments };
