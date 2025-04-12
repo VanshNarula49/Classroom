@@ -25,7 +25,7 @@ import {
           {materials.map((material) => (
             <TableRow key={material.id}>
               <TableCell>{material.title}</TableCell>
-              <TableCell>{material.createdby}</TableCell>
+              <TableCell>{material.creator_name}</TableCell>
               <TableCell>{new Date(material.createdat).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
                 <Link to={`${material.id}`}>
