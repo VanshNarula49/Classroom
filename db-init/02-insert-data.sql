@@ -13382,7 +13382,7 @@ COPY public.grade (gradeid, submissionid, gradeseq, score, feedback, gradedby, g
 --
 
 COPY public.material (materialid, courseid, title, type, description, filepath, createdby, createdat) FROM stdin;
-1	1	Whatever power dinner family	Lecture Notes	Anyone medical subject environmental it long foreign. Gas again operation sea win watch.	https://miller-williams.com/	94	2025-02-16 19:10:31
+1	1	Whatever power dinner family	Lecture Notes	Anyone medical subject environmental it long foreign. Gas again operation sea win watch.	https://miller-williams.com/	94	2024-02-16 19:10:31
 2	1	Ahead visit if product run	Assignment Guidelines	Personal account visit recent every make option together. Kitchen capital bill car might deep.	https://www.mullen-barton.net/	2	2025-02-16 19:10:31
 3	1	Recent deal responsibility lose able	Reading Material	Together might thus represent sense piece. Eat town work their law institution early. Service future onto community way country amount.	http://wilson.net/	71	2025-02-16 19:10:31
 4	1	Peace understand all during	Reading Material	Design Republican likely compare. Yard fly bad color other only treat. Floor turn late age.	http://edwards.net/	104	2025-02-16 19:10:31
