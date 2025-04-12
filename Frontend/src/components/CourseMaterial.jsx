@@ -36,8 +36,8 @@ const CourseMaterial = () => {
 
     const fetchMaterials = async () => {
       try {
-        const res = await axiosInstance.get(`${API_URL}/api/materials/${courseId}`);
-        setMaterials(res.data.materials);
+        const res = await axiosInstance.get(`${API_URL}/api/material/${courseId}`);
+        setMaterials(res.data.data);
       } catch (err) {
         toast.error("Failed to load materials.");
       } finally {

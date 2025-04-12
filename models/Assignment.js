@@ -11,5 +11,27 @@ const getAssignmentById = async (assignmentId) => {
   assignment.course = await getCourseById(assignment.courseid);
   return assignment;
 };
+const getAssignmentsByCourseId = async (courseId) => {
+  // SQL query to retrieve all assignments for the course
+  const assignmentQuery = `
+    SELECT * 
+    FROM assignment 
+    WHERE courseid = $1
+    ORDER BY createdat DESC
+  `;
+  const assignmentResult = await pool.query(assignmentQuery, [courseId]);
+  
+  // If there are no assignments, return an empty array
+  if (assignmentResult.rows.length === 0) return [];
+  
+  // For each assignment, attach the course details using getCourseById.
+  const assignments = await Promise.all(
+    assignmentResult.rows.map(async (assignment) => {
+      assignment.course = await getCourseById(assignment.courseid);
+      return assignment;
+    })
+  );
 
-module.exports = { getAssignmentById };
+  return assignments;
+};
+module.exports = { getAssignmentById, getAssignmentsByCourseId };

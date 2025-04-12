@@ -14,20 +14,22 @@ const getMaterialById = async (materialId) => {
 
 
 const getCourseMaterials = async (courseId) => {
-  console.log(courseId)
+  console.log(courseId);
   const query = `
-    SELECT *
-    FROM material
-    WHERE courseid = $1
-    ORDER BY createdat DESC;
+    SELECT m.*, u.name AS creator_name
+    FROM material m
+    LEFT JOIN public."User" u ON m.createdby = u.userid
+    WHERE m.courseid = $1
+    ORDER BY m.createdat DESC;
   `;
   
   try {
     const result = await pool.query(query, [courseId]);
-    return result.rows; // returns all materials in descending order by createdAt
+    return result.rows; // returns all materials with creator_name in descending order by createdAt
   } catch (error) {
     console.error('Error fetching course materials:', error);
     throw error;
   }
 };
+
 module.exports = { getMaterialById,getCourseMaterials };
