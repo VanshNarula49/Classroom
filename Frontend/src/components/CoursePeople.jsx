@@ -8,6 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+const initials = (name) => {
+  return name
+      ? name.split(" ")
+          .map((part) => part[0])
+          .join("")
+          .toUpperCase()
+      : "??";
+};
 
 const CoursePeople = () => {
     const { courseId } = useParams();
@@ -41,9 +49,11 @@ const CoursePeople = () => {
   
     const renderPersonList = (list) =>
       filterPeople(list).map((name, index) => (
-        <div key={index} className="flex items-center gap-3 py-1">
+        
+      
+      <div key={index} className="flex items-center gap-3 py-1">
           <Avatar className="h-8 w-8">
-            <AvatarFallback>{name[0]}</AvatarFallback>
+            <AvatarFallback>{initials(name)}</AvatarFallback>
           </Avatar>
           <span className="text-sm">{name}</span>
         </div>
