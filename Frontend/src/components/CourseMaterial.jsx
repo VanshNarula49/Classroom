@@ -14,7 +14,7 @@ const CourseMaterial = () => {
   const [courseName, setCourseName] = useState("");
 
   useEffect(() => {
-    const fetchMaterials = async () => {
+    const fetchMaterials = async () => { 
       try {
         const res = await axiosInstance.get(`${API_URL}/api/material/${courseId}`);
         setMaterials(res.data.data);
