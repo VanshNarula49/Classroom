@@ -12,4 +12,22 @@ const getMaterialById = async (materialId) => {
   return material;
 };
 
-module.exports = { getMaterialById };
+
+const getCourseMaterials = async (courseId) => {
+  console.log(courseId)
+  const query = `
+    SELECT *
+    FROM material
+    WHERE courseid = $1
+    ORDER BY createdat DESC;
+  `;
+  
+  try {
+    const result = await pool.query(query, [courseId]);
+    return result.rows; // returns all materials in descending order by createdAt
+  } catch (error) {
+    console.error('Error fetching course materials:', error);
+    throw error;
+  }
+};
+module.exports = { getMaterialById,getCourseMaterials };

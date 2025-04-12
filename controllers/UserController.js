@@ -65,7 +65,7 @@ const login = async (req, res, next) => {
     const user = await User.findUserByEmail(email);
     
     if (!user) {
-      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that e˜mail"};
+      throw { status: 400, message: 'Invalid credentials' , origin:"Database",details:"No account found with that email"};
     }
 
     // Compare the password with the stored hashed password
