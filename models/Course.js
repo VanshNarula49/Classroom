@@ -121,36 +121,91 @@ const stream = async (courseId) => {
   //   title    - the title of the item.
   //   createdby- the user id who created the item.
   //   createdat- the timestamp when the item was created.
-  const query = `
-    SELECT announcementid AS id,
-           'announcement' AS type,
-           courseid,
-           title,
-           createdby,
-           createdat
-      FROM announcement
-     WHERE courseid = $1
-    UNION ALL
-    SELECT assignmentid AS id,
-           'assignment' AS type,
-           courseid,
-           title,
-           createdby,
-           createdat
-      FROM assignment
-     WHERE courseid = $1
-    UNION ALL
-    SELECT materialid AS id,
-           'material' AS type,
-           courseid,
-           title,
-           createdby,
-           createdat
-      FROM material
-     WHERE courseid = $1
-    ORDER BY createdat DESC;
-  `;
-  
+const query = `SELECT id,
+       type,
+       courseid,
+       title,
+       content,
+       description,
+       duedate,
+       resources,
+       assignmenttype,
+       gradereleased,
+       defaultgrade,
+       material_type,
+       filepath,
+       createdby,
+       stream_createdat,
+       creator_name
+FROM (
+  SELECT 
+    a.announcementid AS id,
+    'announcement' AS type,
+    a.courseid,
+    a.title,
+    a.content,
+    NULL::text AS description,
+    NULL::timestamp AS duedate,
+    NULL::text AS resources,
+    NULL::text AS assignmenttype,
+    NULL::boolean AS gradereleased,
+    NULL::numeric AS defaultgrade,
+    NULL::text AS material_type,
+    NULL::text AS filepath,
+    a.createdby,
+    a.createdat AS stream_createdat,
+    u.name AS creator_name
+  FROM announcement a
+  LEFT JOIN public."User" u ON a.createdby = u.userid
+  WHERE a.courseid = $1
+
+  UNION ALL
+
+  SELECT 
+    a.assignmentid AS id,
+    'assignment' AS type,
+    a.courseid,
+    a.title,
+    NULL::text AS content,
+    a.description,
+    a.duedate,
+    a.resources,
+    a.assignmenttype,
+    a.gradereleased,
+    a.defaultgrade,
+    NULL::text AS material_type,
+    NULL::text AS filepath,
+    a.createdby,
+    a.createdat AS stream_createdat,
+    u.name AS creator_name
+  FROM assignment a
+  LEFT JOIN public."User" u ON a.createdby = u.userid
+  WHERE a.courseid = $1
+
+  UNION ALL
+
+  SELECT 
+    m.materialid AS id,
+    'material' AS type,
+    m.courseid,
+    m.title,
+    NULL::text AS content,
+    m.description,
+    NULL::timestamp AS duedate,
+    NULL::text AS resources,
+    NULL::text AS assignmenttype,
+    NULL::boolean AS gradereleased,
+    NULL::numeric AS defaultgrade,
+    m.type AS material_type,
+    m.filepath,
+    m.createdby,
+    m.createdat AS stream_createdat,
+    u.name AS creator_name
+  FROM material m
+  LEFT JOIN public."User" u ON m.createdby = u.userid
+  WHERE m.courseid = $1
+) stream_data
+ORDER BY stream_createdat DESC, type, id;`;
   try {
     const result = await pool.query(query, [courseId]);
     return result.rows;
