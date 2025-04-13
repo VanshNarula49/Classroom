@@ -1,7 +1,7 @@
 // /controllers/submissionController.js
 const pool = require('../config/dbConfig');
 const path = require('path');
-const { generateSubmissionPresignedUrl, generateSubmissionResource } = require('../utils/resourceGenerators');
+const { generateSubmissionPresignedUrl, generateSubmissionResource, getPresignedUrlForGet } = require('../utils/resourceGenerators');
 const { getAssignmentById } = require('../models/Assignment');
 const { createSubmission, getSubmissionById, getLatestUserSubmissionByAssignment } = require('../models/Submission');
 const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
@@ -151,6 +151,30 @@ const createSubmissionRecord = [
         });
       }
       
+      // Check if the assignment exists and get the due date
+      const assignment = await getAssignmentById(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Assignment not found'
+        });
+      }
+      
+      // Check if submission is before the due date
+      const now = new Date();
+      const dueDate = new Date(assignment.duedate);
+      
+      if (now > dueDate) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Submission rejected: Assignment due date has passed',
+          data: {
+            dueDate: dueDate,
+            currentTime: now
+          }
+        });
+      }
+      
       // Create submission record in database
       const submissionData = {
         assignmentId,
@@ -195,11 +219,28 @@ const getLatestUserSubmission = [
       // and attached to req.resource by the middleware
       const submission = req.resource;
       
+      // Generate a view-only URL for the submission file instead of sending the filepath
+      let responseData = { ...submission };
+      
+      if (submission.filepath) {
+        // Create a view-only URL for the submission file with 1 hour expiration
+        const viewUrl = await getPresignedUrlForGet(`classroom-uploads/${submission.filepath}`, 3600);
+        responseData.fileUrl = viewUrl;
+        
+        // Remove the raw filepath to avoid exposing storage paths
+        delete responseData.filepath;
+      }
+      
+      // Don't send the enriched objects (assignment and course details)
+      if (responseData.assignment) {
+        delete responseData.assignment;
+      }
+      
       res.status(200).json({
         status: 'success',
         code: 200,
         message: 'Latest submission fetched successfully',
-        data: submission
+        data: responseData
       });
     } catch (error) {
       next(error);
@@ -226,11 +267,28 @@ const getOtherUserSubmission = [
       // and attached to req.resource by the middleware
       const submission = req.resource;
       
+      // Generate a view-only URL for the submission file instead of sending the filepath
+      let responseData = { ...submission };
+      
+      if (submission.filepath) {
+        // Create a view-only URL for the submission file with 1 hour expiration
+        const viewUrl = await getPresignedUrlForGet(`classroom-uploads/${submission.filepath}`, 3600);
+        responseData.fileUrl = viewUrl;
+        
+        // Remove the raw filepath to avoid exposing storage paths
+        delete responseData.filepath;
+      }
+      
+      // Don't send the enriched objects (assignment and course details)
+      if (responseData.assignment) {
+        delete responseData.assignment;
+      }
+      
       res.status(200).json({
         status: 'success',
         code: 200,
         message: 'User submission fetched successfully',
-        data: submission
+        data: responseData
       });
     } catch (error) {
       next(error);

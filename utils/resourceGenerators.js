@@ -1,6 +1,6 @@
 // /utils/resourceGenerators.js
 
-const { getPresignedUrlForUpload } = require('../config/minio');
+const { getPresignedUrlForUpload, getPresignedUrlForGet } = require('../config/minio');
 const crypto = require('crypto');
 
 /**
@@ -145,5 +145,6 @@ async function generateSubmissionPresignedUrl(userId, assignmentId, courseId, fi
     generateSubmissionResource,
     generateGradeResource,
     generateCommentResource,
-    generateSubmissionPresignedUrl
+    generateSubmissionPresignedUrl,
+    getPresignedUrlForGet
   };
