@@ -20,15 +20,12 @@ const executeQuery = async (req, res, next) => {
       case 1: // List of students enrolled in a course
       case 2: // All materials posted for a specific course
       case 4: // Find all announcements in a course by professors
-      case 5: // Identifies late submissions (optional course filter)
-      case 7: // Average scores per assignment (optional course filter)
-      case 9: // Grade distribution per course
-        // These queries require courseId
-        if (!req.body.courseId && queryId !== 5 && queryId !== 7) {
+        // These queries require courseId unconditionally
+        if (!req.body.courseId) {
           throw { status: 400, message: 'Course ID is required', origin: 'QueryController' };
         }
         break;
-        
+
       case 3: // List all comments under a particular assignment
         if (!req.body.assignmentId) {
           throw { status: 400, message: 'Assignment ID is required', origin: 'QueryController' };
@@ -36,11 +33,12 @@ const executeQuery = async (req, res, next) => {
         break;
         
       case 6: // Performance of a specific student in each course
-      case 8: // Completion rates per student (optional user filter)
-        if (!req.body.userId && queryId !== 8) {
+        if (!req.body.userId) {
           throw { status: 400, message: 'User ID is required', origin: 'QueryController' };
         }
         break;
+        
+      // Cases 5, 7, 8, 9, and 10 don't have required parameters, they have optional filters
     }
     
     let queryText;
@@ -234,10 +232,7 @@ const executeQuery = async (req, res, next) => {
         `;
         
         // Add optional course filter if provided
-        if (req.body.courseId) {
-          queryText += ` WHERE c.CourseId = $1`;
-          queryParams = [req.body.courseId];
-        }
+        
         
         queryText += ` GROUP BY c.CourseId, c.Name HAVING COUNT(g.GradeId) > 0 ORDER BY c.CourseId`;
         break;

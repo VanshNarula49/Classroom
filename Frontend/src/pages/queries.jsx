@@ -79,7 +79,7 @@ export default function App() {
 
         case 6:
           response = await axiosInstance.post(`${API_URL}/api/queries/6`, {
-            userid: queryParams.userid || undefined,
+            userId: queryParams.userid || undefined,
           });
           setQueryResults(response.data.data);
           break;
@@ -93,7 +93,7 @@ export default function App() {
 
         case 8:
           response = await axiosInstance.post(`${API_URL}/api/queries/8`, {
-            userid: queryParams.userid || undefined,
+            userId: queryParams.userid || undefined,
           });
           setQueryResults(response.data.data);
           break;
@@ -522,12 +522,12 @@ function ResultsTable({ queryNumber, data }) {
                     <td className="border p-2">{item.coursename}</td>
                     <td className="border p-2">{item.totalgrades}</td>
                     <td className="border p-2">{item.averagescore}</td>
-                    <td className="border p-2">{item.aPercentage}</td>
-                    <td className="border p-2">{item.bPercentage}</td>
-                    <td className="border p-2">{item.cPercentage}</td>
-                    <td className="border p-2">{item.dPercentage}</td>
-                    <td className="border p-2">{item.ePercentage}</td>
-                    <td className="border p-2">{item.fPercentage}</td>
+                    <td className="border p-2">{item.apercentage}</td>
+                    <td className="border p-2">{item.bpercentage}</td>
+                    <td className="border p-2">{item.cpercentage}</td>
+                    <td className="border p-2">{item.dpercentage}</td>
+                    <td className="border p-2">{item.epercentage}</td>
+                    <td className="border p-2">{item.fpercentage}</td>
                   </tr>
                 ))}
               </tbody>
