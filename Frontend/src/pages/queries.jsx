@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 // Define API constants
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
