@@ -1,7 +1,8 @@
 // /controllers/submissionController.js
 const pool = require('../config/dbConfig');
 const path = require('path');
-const { generateSubmissionPresignedUrl, generateSubmissionResource, getPresignedUrlForGet } = require('../utils/resourceGenerators');
+const { generateSubmissionResource, getPresignedUrlForGet } = require('../utils/resourceGenerators');
+const { generateSecureUploadUrl, verifyUploadToken } = require('../utils/secureUpload');
 const { getAssignmentById } = require('../models/Assignment');
 const { createSubmission, getSubmissionById, getLatestUserSubmissionByAssignment } = require('../models/Submission');
 const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
@@ -107,21 +108,22 @@ const getPresignedUrl = [
         normalizedExtension = '.' + normalizedExtension;
       }
       
-      // Generate the presigned URL with a 5-minute expiration
-      const { url, key } = await generateSubmissionPresignedUrl(
-        req.user.userId,
-        assignmentId, 
-        courseId, 
-        normalizedExtension, 
-        300 // 5 minutes expiration
-      );
+      // Generate a secure upload URL using our JWT approach
+      const { url, token } = await generateSecureUploadUrl({
+        userId: req.user.userId,
+        assignmentId: assignmentId,
+        courseId: courseId,
+        fileExtension: normalizedExtension,
+        expiresIn: 300 // 5 minutes expiration
+      });
       
-      // Return the presigned URL and the key to the client
+      // Return the presigned URL and the token (key for frontend compatibility)
+      // The frontend expects a 'key' field but will receive our secure token instead
       res.json({
         status: 'success',
         data: {
           url,
-          key,
+          key: token, // The frontend expects 'key' but we send the secure token
           expiresIn: 300
         }
       });
@@ -141,13 +143,30 @@ const createSubmissionRecord = [
   checkAbilityForResource('create', 'Submission', submissionLoader),
   async (req, res) => {
     try {
-      const { assignmentId, key } = req.body;
+      const { assignmentId, key: token } = req.body;
       
       // Validate required parameters
-      if (!assignmentId || !key) {
+      if (!assignmentId || !token) {
         return res.status(400).json({
           status: 'error',
           message: 'Missing required parameters: assignmentId and key are required'
+        });
+      }
+      
+      // Verify the upload token
+      const tokenData = verifyUploadToken(token);
+      if (!tokenData) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid or expired upload token'
+        });
+      }
+      
+      // Verify the token belongs to this user and assignment
+      if (tokenData.userId != req.user.userId || tokenData.assignmentId != assignmentId) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Upload token does not match the current assignment or user'
         });
       }
       
@@ -175,11 +194,11 @@ const createSubmissionRecord = [
         });
       }
       
-      // Create submission record in database
+      // Create submission record in database using the secure fileKey from the token
       const submissionData = {
         assignmentId,
         studentId: req.user.userId,
-        filePath: key
+        filePath: tokenData.fileKey // Use the secure file key from the verified token
       };
       
       const submission = await createSubmission(submissionData);
