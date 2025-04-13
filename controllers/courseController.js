@@ -7,8 +7,10 @@ const {
   isCourseCodeUnique,
   getCourseById,
   getCourseDetailsbyId,
-  stream
+  stream,
+  getCourseByCode
 } = require('../models/Course');
+const { getParticipationForCourse, joinCourse } = require('../models/courseParticipation');
 const { generateCourseResource } = require('../utils/resourceGenerators');
 const validator = require('validator');
 const crypto = require('crypto');
@@ -168,9 +170,64 @@ const streamCourse = [ checkAbilityForResource('read', 'Course', coursegen),asyn
   }
 }]
 
+// Join a course using its code
+const joinCourseByCode = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: 'Course code is required.'
+      });
+    }
+    
+    // Find course by code
+    const course = await getCourseByCode(code);
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'Course not found with the provided code.'
+      });
+    }
+    
+    // Check if user is already enrolled in the course
+    const existingParticipation = await getParticipationForCourse(req.user.userId, course.courseid);
+    if (existingParticipation) {
+      return res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: 'You are already enrolled in this course.'
+      });
+    }
+    
+    // Join the course as a student
+    const participation = await joinCourse(req.user.userId, course.courseid);
+    
+    res.status(201).json({
+      status: 'success',
+      code: 201,
+      message: 'Successfully joined the course.',
+      data: {
+        course: {
+          id: course.courseid,
+          name: course.name,
+          description: course.description,
+          role: participation.role
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addCourse,
   getCourses,
   getCourse,
-  streamCourse
+  streamCourse,
+  joinCourseByCode
 };

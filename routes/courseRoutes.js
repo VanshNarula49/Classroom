@@ -1,11 +1,14 @@
 // /routes/courseRoutes.js
 const express = require('express');
 const authenticateJWT = require('../middlewares/authMiddleware');
-const { getCourses,addCourse, getCourse, streamCourse } = require('../controllers/courseController');
+const { getCourses, addCourse, getCourse, streamCourse, joinCourseByCode } = require('../controllers/courseController');
 const router = express.Router();
 
 // Create a new course (only teachers)
 router.post('/', authenticateJWT,  addCourse);
+
+// Join a course using a course code
+router.post('/join', authenticateJWT, joinCourseByCode);
 
 // Get courses (all users who are enrolled in the course or teachers/TAs can access)
 router.get('/', authenticateJWT, getCourses);

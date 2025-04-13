@@ -112,6 +112,13 @@ const isCourseCodeUnique = async (code) => {
   const result = await pool.query(query, [code]);
   return result.rows[0].count == 0;
 };
+
+const getCourseByCode = async (code) => {
+  const query = `SELECT * FROM public.course WHERE code = $1`;
+  const result = await pool.query(query, [code]);
+  return result.rows[0] || null;
+};
+
 const stream = async (courseId) => {
   // The SQL query uses UNION ALL to combine rows from three tables.
   // Each SELECT returns the following columns (adjusted as needed):
@@ -215,4 +222,12 @@ ORDER BY stream_createdat DESC, type, id;`;
   }
 };
 
-module.exports = { getCourseById ,getCourseDetailsbyId ,getCoursesByUserId, createCourse,isCourseCodeUnique,stream};
+module.exports = { 
+  getCourseById, 
+  getCourseDetailsbyId, 
+  getCoursesByUserId, 
+  createCourse, 
+  isCourseCodeUnique, 
+  stream,
+  getCourseByCode 
+};

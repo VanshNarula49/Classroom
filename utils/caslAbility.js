@@ -226,8 +226,106 @@ function defineAbilitiesFor(user) {
   }
 
   // === Comment ===
-  // Everyone can create and read comments
-  can(['create', 'read'], 'Comment');
+  // Replace the generic comment permissions with more specific ones based on parent type
+  
+  // For Announcement comments - anyone in the course can create/read
+  can(['create', 'read'], 'Comment', comment => {
+    if (comment.parentType !== 'Announcement' || !comment.parent) return false;
+    
+    const announcement = comment.parent;
+    if (!announcement.course) return false;
+    
+    return Number(announcement.course.createdby) === uid || 
+           (Array.isArray(announcement.course.teacherIds) && 
+            announcement.course.teacherIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(announcement.course.taIds) && 
+            announcement.course.taIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(announcement.course.enrolledStudentIds) && 
+            announcement.course.enrolledStudentIds.some(id => Number(id) === uid));
+  });
+  
+  // For Material comments - anyone in the course can create/read
+  can(['create', 'read'], 'Comment', comment => {
+    if (comment.parentType !== 'Material' || !comment.parent) return false;
+    
+    const material = comment.parent;
+    if (!material.course) return false;
+    
+    return Number(material.course.createdby) === uid || 
+           (Array.isArray(material.course.teacherIds) && 
+            material.course.teacherIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(material.course.taIds) && 
+            material.course.taIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(material.course.enrolledStudentIds) && 
+            material.course.enrolledStudentIds.some(id => Number(id) === uid));
+  });
+  
+  // For Assignment comments - anyone in the course can create/read
+  can(['create', 'read'], 'Comment', comment => {
+    if (comment.parentType !== 'Assignment' || !comment.parent) return false;
+    
+    const assignment = comment.parent;
+    if (!assignment.course) return false;
+    
+    return Number(assignment.course.createdby) === uid || 
+           (Array.isArray(assignment.course.teacherIds) && 
+            assignment.course.teacherIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(assignment.course.taIds) && 
+            assignment.course.taIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(assignment.course.enrolledStudentIds) && 
+            assignment.course.enrolledStudentIds.some(id => Number(id) === uid));
+  });
+  
+  // For Submission comments - only teachers, TAs, and the student who made the submission
+  can(['create', 'read'], 'Comment', comment => {
+    if (comment.parentType !== 'Submission' || !comment.parent) return false;
+    
+    const submission = comment.parent;
+    
+    // The student who made the submission can comment and view comments on their own submission
+    if (Number(submission.studentid) === uid) return true;
+    
+    // Check if teacher/TA has access through course
+    if (!submission.assignment || !submission.assignment.course) return false;
+    
+    const course = submission.assignment.course;
+    return Number(course.createdby) === uid || 
+           (Array.isArray(course.teacherIds) && 
+            course.teacherIds.some(id => Number(id) === uid)) ||
+           (Array.isArray(course.taIds) && 
+            course.taIds.some(id => Number(id) === uid));
+  });
+  
+  // Users can delete their own comments
+  can('delete', 'Comment', comment => Number(comment.createdby) === uid);
+  
+  // Teachers can delete any comments in their courses
+  if (user.courseRole === 'teacher') {
+    can('delete', 'Comment', comment => {
+      if (!comment.parent) return false;
+      
+      let course;
+      
+      if (comment.parentType === 'Announcement') {
+        course = comment.parent.course;
+      } else if (comment.parentType === 'Material') {
+        course = comment.parent.course;
+      } else if (comment.parentType === 'Assignment') {
+        course = comment.parent.course;
+      } else if (comment.parentType === 'Submission') {
+        if (!comment.parent.assignment) return false;
+        course = comment.parent.assignment.course;
+      } else {
+        return false;
+      }
+      
+      if (!course) return false;
+      
+      return Number(course.createdby) === uid || 
+             (Array.isArray(course.teacherIds) && 
+              course.teacherIds.some(id => Number(id) === uid));
+    });
+  }
 
   // === AuditLog ===
   // Teachers can create audit logs

@@ -11,8 +11,8 @@ const getAnnouncementById = async (announcementId) => {
   announcement.course = await getCourseById(announcement.courseid);
   return announcement;
 };
+
 const getAnnouncementsByCourseId = async (courseId) => {
-  // Query to get all announcements for the given course
   const announcementQuery = `
     SELECT * 
     FROM announcement 
@@ -21,13 +21,10 @@ const getAnnouncementsByCourseId = async (courseId) => {
   `;
   const announcementResult = await pool.query(announcementQuery, [courseId]);
   
-  // If there are no rows, return an empty array
   if (announcementResult.rows.length === 0) return [];
 
-  // For each announcement, attach the course details
   const announcements = await Promise.all(
     announcementResult.rows.map(async (announcement) => {
-      // This assumes getCourseById returns the course details for a given courseId
       announcement.course = await getCourseById(announcement.courseid);
       return announcement;
     })
@@ -36,5 +33,40 @@ const getAnnouncementsByCourseId = async (courseId) => {
   return announcements;
 };
 
+/**
+ * Creates a new announcement for a course
+ * 
+ * @param {Object} announcementData - The announcement data
+ * @param {number} announcementData.courseId - The ID of the course
+ * @param {number} announcementData.createdBy - The ID of the user creating the announcement
+ * @param {string} announcementData.title - The title of the announcement
+ * @param {string} announcementData.content - The content of the announcement
+ * @returns {Object} The created announcement
+ */
+const createAnnouncement = async (announcementData) => {
+  const { courseId, createdBy, title, content } = announcementData;
+  
+  const query = `
+    INSERT INTO announcement (courseid, createdby, title, content, createdat)
+    VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+    RETURNING *
+  `;
+  
+  const values = [courseId, createdBy, title, content];
+  const result = await pool.query(query, values);
+  
+  if (result.rows.length === 0) {
+    throw new Error('Failed to create announcement');
+  }
+  
+  const announcement = result.rows[0];
+  announcement.course = await getCourseById(courseId);
+  
+  return announcement;
+};
 
-module.exports = { getAnnouncementById ,getAnnouncementsByCourseId};
+module.exports = { 
+  getAnnouncementById, 
+  getAnnouncementsByCourseId,
+  createAnnouncement
+};

@@ -12,7 +12,6 @@ const getMaterialById = async (materialId) => {
   return material;
 };
 
-
 const getCourseMaterials = async (courseId) => {
   console.log(courseId);
   const query = `
@@ -32,4 +31,41 @@ const getCourseMaterials = async (courseId) => {
   }
 };
 
-module.exports = { getMaterialById,getCourseMaterials };
+/**
+ * Creates a new material for a course
+ * @param {Object} materialData - The material data
+ * @param {string} materialData.title - Material title
+ * @param {string} materialData.type - Material type
+ * @param {string|null} materialData.description - Optional material description
+ * @param {string|null} materialData.filepath - Optional filepath if material has an attachment
+ * @param {number} materialData.courseId - ID of course this material belongs to
+ * @param {number} materialData.createdBy - ID of user creating the material
+ * @returns {Object} Newly created material
+ */
+const createMaterial = async (materialData) => {
+  const { title, type, description, filepath, courseId, createdBy } = materialData;
+  
+  const query = `
+    INSERT INTO material (title, type, description, filepath, courseid, createdby, createdat)
+    VALUES ($1, $2, $3, $4, $5, $6, NOW())
+    RETURNING *;
+  `;
+  
+  try {
+    const result = await pool.query(query, [
+      title, 
+      type, 
+      description, 
+      filepath, 
+      courseId, 
+      createdBy
+    ]);
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error creating material:', error);
+    throw error;
+  }
+};
+
+module.exports = { getMaterialById, getCourseMaterials, createMaterial };

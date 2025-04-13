@@ -8,6 +8,8 @@ const assignmentsRoutes = require('./routes/assignmentRoutes')
 const queryRoutes = require('./routes/queryRoutes')
 const materialRoutes = require('./routes/materialRoutes')
 const submissionRoutes = require('./routes/submissionRoutes')
+const announcementRoutes = require('./routes/announcementRoutes')
+const commentRoutes = require('./routes/commentRoutes')
 const pool = require('./config/dbConfig'); // Using pg connection pool
 const errorHandler = require('./middlewares/errorMiddleware'); // Import error handler
 require('dotenv').config();
@@ -30,6 +32,8 @@ app.use('/api/material',materialRoutes)
 app.use('/api/assignments',assignmentsRoutes)
 app.use('/api/queries',queryRoutes)
 app.use('/api/submissions', submissionRoutes)
+app.use('/api/announcements', announcementRoutes)
+app.use('/api/comments', commentRoutes)
 
 // Test DB connection before starting the server
 pool.connect()

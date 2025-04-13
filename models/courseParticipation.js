@@ -7,4 +7,22 @@ const getParticipationForCourse = async (userId, courseId) => {
   return result.rows[0] || null;
 };
 
-module.exports = { getParticipationForCourse };
+const joinCourse = async (userId, courseId, role = 'Student') => {
+  const query = `
+    INSERT INTO public.courseparticipation (courseid, userid, role, enrollmentdate)
+    VALUES ($1, $2, $3, CURRENT_DATE)
+    RETURNING *;
+  `;
+  
+  try {
+    const result = await pool.query(query, [courseId, userId, role]);
+    return result.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = { 
+  getParticipationForCourse,
+  joinCourse
+};
