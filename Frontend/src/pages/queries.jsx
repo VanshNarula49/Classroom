@@ -18,7 +18,7 @@ export default function App() {
   const [queryParams, setQueryParams] = useState({
     courseId: "",
     assignmentId: "",
-    userid: "",
+    userId: "",
   });
   const [loading, setLoading] = useState(false);
   const [coursename, setCourseName] = useState("");
@@ -383,13 +383,13 @@ function ResultsTable({ queryNumber, data }) {
               <tbody>
                 {data.map((item, index) => (
                   <tr key={index}>
-                    <td className="border p-2">{item.submissionId}</td>
-                    <td className="border p-2">{item.studentName}</td>
+                    <td className="border p-2">{item.submissionid}</td>
+                    <td className="border p-2">{item.studentname}</td>
                     <td className="border p-2">{item.coursename}</td>
                     <td className="border p-2">{item.assignmenttitle}</td>
-                    <td className="border p-2">{item.submittedDate}</td>
-                    <td className="border p-2">{item.dueDate}</td>
-                    <td className="border p-2">{item.daysLate}</td>
+                    <td className="border p-2">{item.submitteddate}</td>
+                    <td className="border p-2">{item.duedate}</td>
+                    <td className="border p-2">{item.dayslate}</td>
                   </tr>
                 ))}
               </tbody>
