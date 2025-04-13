@@ -3,7 +3,7 @@
 const { AbilityBuilder, Ability } = require('@casl/ability');
 
 function defineAbilitiesFor(user) {
-  const { can, build } = new AbilityBuilder(Ability);
+  const { can, cannot, build } = new AbilityBuilder(Ability);
   const uid = Number(user.userId); // Ensure the user ID is a number
 
   // === Course ===
@@ -95,11 +95,39 @@ function defineAbilitiesFor(user) {
              (Array.isArray(course.taIds) && 
               course.taIds.some(id => Number(id) === uid));
     });
+    
+    // Add specific ability for viewing any user's submission - only for teachers and TAs
+    can('viewAnyUserSubmission', 'Submission', submission => {
+      if (!submission.assignment || !submission.assignment.course) return false;
+      
+      const course = submission.assignment.course;
+      return Number(course.createdby) === uid || 
+             (Array.isArray(course.teacherIds) && 
+              course.teacherIds.some(id => Number(id) === uid)) ||
+             (Array.isArray(course.taIds) && 
+              course.taIds.some(id => Number(id) === uid));
+    });
+    
+    // Explicitly prevent teachers and TAs from creating submissions
+    cannot('create', 'Submission');
   }
   
   if (user.courseRole === 'student') {
-    // Student can create a submission for themselves
-    can('create', 'Submission', submission => Number(submission.studentid) === uid);
+    // Student can create a submission for themselves if they are enrolled in the course
+    can('create', 'Submission', submission => {
+      // Verify the student is the one submitting
+      if (Number(submission.studentid) !== uid) return false;
+      
+      // Verify the student is enrolled in the course
+      if (!submission.assignment || !submission.assignment.course) return false;
+      
+      const course = submission.assignment.course;
+      return Array.isArray(course.enrolledStudentIds) && 
+             course.enrolledStudentIds.some(id => Number(id) === uid);
+    });
+    
+    // Students can read their own submissions
+    can('read', 'Submission', submission => Number(submission.studentid) === uid);
   }
 
   // === Grade ===

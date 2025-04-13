@@ -7,9 +7,9 @@ const getCourseById = async (courseId) => {
   c.name,
   c.description,
   c.createdby,
-  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Ta'), '{}') AS taIds,
-  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Student'), '{}') AS enrolledStudentIds,
-  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE cp.role = 'Professor'), '{}') AS teacherIds
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE UPPER(cp.role) = 'TA'), '{}') AS taIds,
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE UPPER(cp.role) = 'STUDENT'), '{}') AS enrolledStudentIds,
+  COALESCE(ARRAY_AGG(DISTINCT cp.userid) FILTER (WHERE UPPER(cp.role) = 'PROFESSOR'), '{}') AS teacherIds
 FROM course c
 LEFT JOIN courseparticipation cp ON c.courseid = cp.courseid
 WHERE c.courseid = $1

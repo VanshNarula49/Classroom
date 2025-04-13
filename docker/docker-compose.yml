@@ -54,6 +54,25 @@ services:
       - "9090:9090"  # MinIO Console port
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  minio-init:
+    image: quay.io/minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadminpassword;
+      /usr/bin/mc mb myminio/classroom-uploads --ignore-existing;
+      /usr/bin/mc policy set public myminio/classroom-uploads;
+      exit 0;
+      "
 
   memcached:
     image: memcached:latest

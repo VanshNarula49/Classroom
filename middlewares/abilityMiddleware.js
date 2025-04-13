@@ -19,8 +19,20 @@ const checkAbilityForResource = (action, subjectType, resourceLoader) => {
         return res.status(404).json({ message: 'Resource not found' });
       }
 
-      // 2) Identify course context
-      let courseContext = resource.course || (subjectType === 'Course' ? resource : null);
+      // 2) Identify course context - support both direct and nested course objects
+      let courseContext = null;
+      
+      if (resource.course) {
+        // Direct course property (most resources)
+        courseContext = resource.course;
+      } else if (subjectType === 'Course') {
+        // Resource itself is a course
+        courseContext = resource;
+      } else if (subjectType === 'Submission' && resource.assignment && resource.assignment.course) {
+        // For submissions, course is nested within assignment
+        courseContext = resource.assignment.course;
+      }
+      
       console.log('[DEBUG] courseContext:', JSON.stringify(courseContext, null, 2));
 
       // 3) Possibly augment the user with the courseRole

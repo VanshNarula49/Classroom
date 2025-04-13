@@ -1,5 +1,8 @@
 // /utils/resourceGenerators.js
 
+const { getPresignedUrlForUpload } = require('../config/minio');
+const crypto = require('crypto');
+
 /**
  * Generate a minimal Course resource.
  * Only includes the IDs needed for CASL checks.
@@ -106,7 +109,34 @@ function generateCourseResource(dbCourse) {
       parenttype: dbComment.parenttype
     };
   }
+
+/**
+ * Generate a presigned URL for submission file uploads
+ * Creates a unique file key based on user ID, assignment ID and a random string
+ * 
+ * @param {string} userId - The ID of the user uploading the file
+ * @param {string} assignmentId - The ID of the assignment
+ * @param {string} courseId - The ID of the course
+ * @param {string} fileExtension - The original file extension (e.g., '.pdf', '.docx')
+ * @param {number} expiresIn - Expiration time for the URL in seconds (default: 300 seconds/5 minutes)
+ * @returns {Object} - Object containing the presigned URL and the generated file key
+ */
+async function generateSubmissionPresignedUrl(userId, assignmentId, courseId, fileExtension, expiresIn = 300) {
+  // Generate a random string for uniqueness
+  const randomString = crypto.randomBytes(8).toString('hex');
   
+  // Create a structured file key: submissions/courseId/assignmentId/userId_randomString.ext
+  const key = `submissions/${courseId}/${assignmentId}/${userId}_${randomString}${fileExtension}`;
+  
+  // Generate the presigned URL (using the 'classroom-uploads' bucket)
+  const presignedUrl = await getPresignedUrlForUpload(`classroom-uploads/${key}`, expiresIn);
+  
+  return {
+    url: presignedUrl,
+    key: key
+  };
+}
+
   module.exports = {
     generateCourseResource,
     generateAssignmentResource,
@@ -114,6 +144,6 @@ function generateCourseResource(dbCourse) {
     generateAnnouncementResource,
     generateSubmissionResource,
     generateGradeResource,
-    generateCommentResource
+    generateCommentResource,
+    generateSubmissionPresignedUrl
   };
-  

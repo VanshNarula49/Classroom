@@ -3,9 +3,10 @@ const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/clien
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // Read Minio connection settings from environment variables (configured in your Docker Compose)
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
+const MINIO_ENDPOINT = 'http://192.168.45.101:9000';
 const MINIO_ACCESS_KEY = process.env.MINIO_ROOT_USER || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_ROOT_PASSWORD || 'minioadminpassword';
+const DEFAULT_BUCKET = 'classroom-uploads'; // Default bucket for file uploads
 
 // Create an S3 client for Minio (forcePathStyle is required)
 const s3Client = new S3Client({
@@ -22,7 +23,8 @@ const s3Client = new S3Client({
 function parseBucketAndKey(combined) {
   const index = combined.indexOf('/');
   if (index === -1) {
-    throw new Error('Invalid format. Expected "bucket-name/object-key"');
+    // If no bucket specified, use default bucket
+    return { bucket: DEFAULT_BUCKET, key: combined };
   }
   const bucket = combined.substring(0, index);
   const key = combined.substring(index + 1);
