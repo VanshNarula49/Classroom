@@ -168,6 +168,18 @@ function QueryInputPage({ executeQuery, queryParams, handleInputChange, loading 
         {[...Array(10).keys()].map((index) => (
           <div key={index} className="p-4 border rounded">
             <h2 className="font-bold">Execute Query {index + 1}</h2>
+            <p className="text-sm text-gray-600 mb-2">
+              {index === 0 ? "List students enrolled in a course" :
+              index === 1 ? "View all course materials" :
+              index === 2 ? "Show comments for an assignment" :
+              index === 3 ? "List professor announcements for a course" :
+              index === 4 ? "Identify late assignment submissions" :
+              index === 5 ? "Show student performance across courses" :
+              index === 6 ? "Display assignment statistics and failure rates" :
+              index === 7 ? "View student completion rates and averages" :
+              index === 8 ? "Show grade distribution by course" :
+              "List students at risk of failing"}
+            </p>
             {index + 1 <= 8 && (
               <div className="mt-2">
                 <label className="block mb-1">

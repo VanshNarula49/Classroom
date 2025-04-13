@@ -17,7 +17,6 @@ const AssignmentTable = ({ assignments }) => {
           <TableHead className="w-[35%]">Title</TableHead>
           <TableHead className="w-[20%]">Created By</TableHead>
           <TableHead className="w-[20%]">Due Date</TableHead>
-          <TableHead className="w-[10%]">Status</TableHead>
           <TableHead className="text-right w-[15%]">Action</TableHead>
         </TableRow>
       </TableHeader>
@@ -27,7 +26,6 @@ const AssignmentTable = ({ assignments }) => {
             <TableCell>{assignment.title}</TableCell>
             <TableCell>{assignment.creator_name}</TableCell>
             <TableCell>{new Date(assignment.duedate).toLocaleDateString()}</TableCell>
-            <TableCell>{assignment.status || "Not submitted"}</TableCell>
             <TableCell className="text-right">
               <Link 
                 to={`${assignment.assignmentid}`} 

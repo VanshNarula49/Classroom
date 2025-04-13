@@ -51,7 +51,20 @@ const MaterialDetail = () => {
 
   const handleViewMaterial = () => {
     try {
-      window.open(material.filepath, "_blank");
+      // Check for both possible property names
+      const fileUrl = material.filepath || material.fileUrl;
+      
+      if (fileUrl) {
+        window.open(fileUrl, "_blank");
+      } else {
+        toast.error(
+          <div align="left">
+            <strong>No File Available</strong>
+            <br />
+            This material doesn't have an associated file
+          </div>
+        );
+      }
     } catch (error) {
       toast.error(
         <div align="left">

@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an axios instance with your base API URL.
 const axiosInstance = axios.create({
-  baseURL:"http://localhost:3000", // Change to your API URL
+  baseURL:import.meta.env.VITE_API_URL|| "http://localhost:3000" // Change to your API URL
 });
 
 // Request Interceptor: Attach token from localStorage (or another storage mechanism)

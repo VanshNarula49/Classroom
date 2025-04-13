@@ -14,6 +14,7 @@ import MaterialDetail from "@/components/Material";
 import CourseAssignment from "@/components/CourseAssignments";
 import Assignment from "@/components/Assignment";
 import App from "@/pages/queries";
+import AnnouncementDetail from "@/components/Announcement";
 
 const AppRoutes = () => {
   const { token } = useContext(AuthContext);
@@ -38,6 +39,8 @@ const AppRoutes = () => {
               <Route path="materials/:materialId" element={<MaterialDetail />} />
               <Route path="assignments" element={<CourseAssignment />} />
               <Route path="assignments/:assignmentId" element={<Assignment />} />
+              <Route path="announcements/:announcementId" element={<AnnouncementDetail />} />
+
         </Route>
 
         <Route index element={<Navigate to="/dashboard" />} />

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ChevronRight } from "lucide-react";
-import { getClass } from "@/services/userServices";
 import { useNavigate } from 'react-router-dom';
 
 export function ClassroomCard({ name, courseCode, professor, role, id }) {
@@ -9,15 +8,14 @@ export function ClassroomCard({ name, courseCode, professor, role, id }) {
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
-  
-  // Handle the typing animation effect
+
   useEffect(() => {
     let typingTimer;
-    
+
     if (isHovered) {
       setIsTyping(true);
       setDisplayedText("");
-      
+
       let index = 0;
       typingTimer = setInterval(() => {
         if (index <= name.length) {
@@ -27,19 +25,19 @@ export function ClassroomCard({ name, courseCode, professor, role, id }) {
           clearInterval(typingTimer);
           setIsTyping(false);
         }
-      }, 70); // Adjust typing speed here
+      }, 70);
     } else {
       clearInterval(typingTimer);
       setDisplayedText(name);
       setIsTyping(false);
     }
-    
+
     return () => clearInterval(typingTimer);
   }, [isHovered, name]);
-  
+
   return (
     <Card 
-      onClick={() => navigate('/courses/'+id)}
+      onClick={() => navigate(`/courses/${id}`, { state: { className: name } })}
       className={`min-w-xs w-full max-w-md transition-all duration-500 border-gray-100 hover:border-gray-400 group cursor-pointer
                  ${isHovered ? 'bg-black text-white' : 'bg-white text-black'}`}
       onMouseEnter={() => setIsHovered(true)}
@@ -47,25 +45,19 @@ export function ClassroomCard({ name, courseCode, professor, role, id }) {
     >
       <CardContent className="pt-6">
         <div className="mb-6 overflow-hidden">
-          <p
-            className={`text-xs font-sans font-medium mb-1 transition-colors duration-300
-                      ${isHovered ? 'text-gray-400' : 'text-gray-500'}`}
-          >
+          <p className={`text-xs font-sans font-medium mb-1 transition-colors duration-300
+                        ${isHovered ? 'text-gray-400' : 'text-gray-500'}`}>
             {courseCode}
           </p>
-          <div className="overflow-hidden h-24"> {/* Fixed height to prevent layout shift */}
-            <h3
-              className={`font-sans text-3xl font-medium mb-6 tracking-tight transition-colors duration-300
-                        ${isHovered ? 'text-white' : 'text-gray-900'}`}
-            >
+          <div className="overflow-hidden h-24">
+            <h3 className={`font-sans text-3xl font-medium mb-6 tracking-tight transition-colors duration-300
+                          ${isHovered ? 'text-white' : 'text-gray-900'}`}>
               {displayedText}
               {isTyping && <span className="inline-block w-1 h-6 ml-1 bg-current animate-pulse"></span>}
             </h3>
           </div>
-          <div
-            className={`border-t pt-4 transition-colors duration-300 animate-soft-fade-in
-                      ${isHovered ? 'border-gray-800' : 'border-gray-100'}`}
-          >
+          <div className={`border-t pt-4 transition-colors duration-300 animate-soft-fade-in
+                        ${isHovered ? 'border-gray-800' : 'border-gray-100'}`}>
             <div className={`text-sm transition-colors ${isHovered ? 'text-gray-300' : 'text-gray-700'}`}>
               <p className="font-medium">{professor}</p>
               <p className="text-xs">You are a {role}</p>

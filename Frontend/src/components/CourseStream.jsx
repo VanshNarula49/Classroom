@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
 import MaterialCard from "./ui/material-stream";
@@ -60,11 +60,13 @@ export default function StreamView() {
       
       <div className="flex flex-col space-y-3 w-full">
         {streamItems.map((item) => {
+          console.log(item)
           switch (item.type) {
             case "announcement":
               return (
                 <AnnouncementCard
-                  key={`announcement-${item.id}`}
+                  key={`/announcements/${item.id}`}
+                  id = {item.id}
                   title={item.title}
                   createdBy={item.creator_name}
                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}
@@ -74,19 +76,22 @@ export default function StreamView() {
             case "assignment":
               return (
                 <AssignmentCard
-                  key={`assignment-${item.id}`}
+                  key={`/assignments/${item.id}`}
+                  id={item.id} // ✅ Pass the id prop
                   title={item.title}
                   createdBy={item.creator_name}
                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}
                   dueDate={item.duedate && new Date(item.duedate).toLocaleDateString()}
                   description={item.description}
                   assignmentType={item.assignmenttype}
+                  item = {item}
                 />
               );
             case "material":
               return (
                 <MaterialCard
-                  key={`material-${item.id}`}
+                  key={`/materials/${item.id}`}
+                  id={item.id} // ✅ Pass the id prop
                   title={item.title}
                   createdBy={item.creator_name}
                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}

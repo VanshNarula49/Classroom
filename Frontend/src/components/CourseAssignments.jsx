@@ -43,9 +43,6 @@ const CourseAssignment = () => {
     <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border">
       <Toaster position="top-right" richColors />
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle>{courseName ? `Assignments for ${courseName}` : 'Course Assignments'}</CardTitle>
-        </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-muted-foreground p-4">Loading assignments...</p>
