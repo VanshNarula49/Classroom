@@ -5,6 +5,7 @@ const passport = require('passport');
 const userRoutes = require('./routes/userRoutes');
 const coursesRoutes = require('./routes/courseRoutes')
 const assignmentsRoutes = require('./routes/assignmentRoutes')
+const queryRoutes = require('./routes/queryRoutes')
 const materialRoutes = require('./routes/materialRoutes')
 const pool = require('./config/dbConfig'); // Using pg connection pool
 const errorHandler = require('./middlewares/errorMiddleware'); // Import error handler
@@ -26,6 +27,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/courses',coursesRoutes)
 app.use('/api/material',materialRoutes)
 app.use('/api/assignments',assignmentsRoutes)
+app.use('/api/queries',queryRoutes)
 
 // Test DB connection before starting the server
 pool.connect()
