@@ -17,6 +17,8 @@ import { Upload, X, FileText } from "lucide-react";
 import axios from 'axios';
 import { toast, Toaster } from "sonner";
 import axiosInstance from '@/utils/axiosInstance';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -45,6 +47,16 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
     setUploadProgress(0);
   };
 
+  const handleDateChange = (date) => {
+    if (date) {
+      // Format date as YYYY-MM-DD for backend
+      const formattedDate = date.toISOString().split('T')[0];
+      setDueDate(formattedDate);
+    } else {
+      setDueDate('');
+    }
+  };
+
   const handleSubmit = async () => {
     if (!file || !title || !dueDate || !points) {
       toast.error(
@@ -61,7 +73,7 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
     try {
       // 1. Get presigned URL from new endpoint
       const presignedRes = await axiosInstance.get(
-        `${API_URL}/api/courses/${courseId}/assignments/presigned-url`,
+        `${API_URL}/api/assignments/${courseId}/presigned-url`,
         { params: { fileExtension } }
       );
 
@@ -136,10 +148,12 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="mb-4">
                 <Label className="mb-1 block">Due Date</Label>
-                <Input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
+                <DatePicker
+                  selected={dueDate ? new Date(dueDate) : null}
+                  onChange={handleDateChange}
+                  dateFormat="yyyy-MM-dd"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  placeholderText="Select a due date"
                   required
                 />
               </div>

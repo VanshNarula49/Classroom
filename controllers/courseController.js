@@ -180,7 +180,7 @@ const streamCourse = [
         }
         if (item.type === 'assignment' && item.resources) {
           // Create a presigned URL for the file with 1 hour expiration
-          const fileUrl = await getPresignedUrlForGet(`classroom-uploads/${item.resource}`, 3600);
+          const fileUrl = await getPresignedUrlForGet(`classroom-uploads/${item.resources}`, 3600);
           
           // Add the signed URL to the item and remove the raw filepath
           return {
@@ -222,7 +222,7 @@ const joinCourseByCode = async (req, res, next) => {
     if (!course) {
       return res.status(404).json({
         status: 'error',
-        code: 404,
+        code: 403,
         message: 'Course not found with the provided code.'
       });
     }

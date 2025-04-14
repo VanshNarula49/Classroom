@@ -172,7 +172,7 @@ const createAssignment = [
 
       // Create the assignment in the database
       const insertQuery = `
-        INSERT INTO assignment (title, description, duedate, points, courseid, createdby, resources, createdat)
+        INSERT INTO assignment (title, description, duedate, defaultgrade, courseid, createdby, resources, createdat)
         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
       `;
@@ -181,7 +181,7 @@ const createAssignment = [
         title,
         instructions,
         dueDate,
-        points,
+        points,  // This will be mapped to defaultgrade now
         courseId,
         userId,
         resource

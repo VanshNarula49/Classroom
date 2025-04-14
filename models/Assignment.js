@@ -46,8 +46,9 @@ const createAssignment = async (assignmentData) => {
       resources, 
       courseid, 
       createdby, 
-      createdat
-    ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      createdat,
+      defaultgrade
+    ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
     RETURNING *
   `;
   
@@ -57,7 +58,8 @@ const createAssignment = async (assignmentData) => {
     dueDate,
     resource, // Store in the 'resources' column
     courseId,
-    createdBy
+    createdBy,
+    points    // This maps to defaultgrade parameter ($7)
   ]);
   
   return result.rows[0];
