@@ -58,7 +58,7 @@ export function Header() {
         setClassroomName("");
         setClassroomDescription("");
         setCreateOpen(false);
-        window.location.reload(); // 🔄 Refresh page
+        window.location.reload();
       }
     } catch (err) {
       toast.error(
@@ -82,7 +82,8 @@ export function Header() {
         toast.success("Successfully joined the course!");
         setClassroomCode("");
         setJoinOpen(false);
-        navigate("/dashboard"); // or window.location.reload();
+        // navigate("/dashboard");
+        window.location.reload();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred while joining.");
