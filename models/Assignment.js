@@ -65,8 +65,30 @@ const createAssignment = async (assignmentData) => {
   return result.rows[0];
 };
 
+/**
+ * Toggle the grade release status of an assignment
+ * @param {number} assignmentId - The ID of the assignment
+ * @returns {Object} The updated assignment
+ */
+const toggleGradeReleased = async (assignmentId) => {
+  // SQL query to toggle the gradereleased status
+  const query = `
+    UPDATE assignment
+    SET gradereleased = NOT gradereleased
+    WHERE assignmentid = $1
+    RETURNING *
+  `;
+  
+  const result = await pool.query(query, [assignmentId]);
+  
+  if (result.rows.length === 0) return null;
+  
+  return result.rows[0];
+};
+
 module.exports = { 
   getAssignmentById, 
   getAssignmentsByCourseId,
-  createAssignment 
+  createAssignment,
+  toggleGradeReleased
 };

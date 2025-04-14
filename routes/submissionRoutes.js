@@ -5,7 +5,8 @@ const {
   getPresignedUrl, 
   createSubmissionRecord, 
   getLatestUserSubmission,
-  getOtherUserSubmission 
+  getOtherUserSubmission,
+  getAllSubmissionsForAssignment
 } = require('../controllers/submissionController');
 const router = express.Router();
 
@@ -26,5 +27,9 @@ router.get('/assignment/:assignmentId', authenticateJWT, getLatestUserSubmission
 // Route: GET /api/submissions/assignment/:assignmentId/user/:userId
 // (primarily for teachers/TAs to view specific student's submission)
 router.get('/assignment/:assignmentId/user/:userId', authenticateJWT, getOtherUserSubmission);
+
+// Get all submissions for a specific assignment with grades (for teachers/TAs)
+// Route: GET /api/submissions/assignment/:assignmentId/all
+router.get('/assignment/:assignmentId/all', authenticateJWT, getAllSubmissionsForAssignment);
 
 module.exports = router;

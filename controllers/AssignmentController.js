@@ -1,7 +1,7 @@
 // controllers/assignment.controller.js
 
 const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
-const { getAssignmentsByCourseId, getAssignmentById } = require('../models/Assignment'); // adjust path if needed
+const { getAssignmentsByCourseId, getAssignmentById, toggleGradeReleased } = require('../models/Assignment'); 
 const { generateCourseResource } = require('../utils/resourceGenerators');
 const { getCourseById } = require('../models/Course');
 const { generateSecureUploadUrl, verifyUploadToken, generateSecureAssignmentUploadUrl } = require('../utils/secureUpload');
@@ -210,8 +210,69 @@ const createAssignment = [
   }
 ];
 
+/**
+ * Loader function for accessing specific assignment.
+ * It retrieves the assignment by ID and returns it with the course information
+ * that is used by the CASL middleware to enforce permissions.
+ */
+const assignmentLoader = async (req) => {
+  if (!req.params || !req.params.id) {
+    throw { status: 400, message: 'Assignment ID is required', origin: 'AssignmentController' };
+  }
+  const assignmentId = req.params.id;
+  if (isNaN(assignmentId)) {
+    throw { status: 400, message: 'Assignment ID must be a valid number', origin: 'AssignmentController' };
+  }
+  const assignment = await getAssignmentById(assignmentId);
+  if (!assignment) {
+    throw { status: 404, message: 'Assignment not found', origin: 'Database' };
+  }
+  return assignment;
+};
+
+/**
+ * Controller to toggle the grade release status of an assignment.
+ * Only teachers of the course can toggle grade release status.
+ *
+ * Route: PUT /assignments/:id/toggle-grade-release
+ */
+const toggleGradeRelease = [
+  // Only teachers can toggle grade release, not TAs
+  checkAbilityForResource('update', 'Assignment', assignmentLoader),
+  
+  async (req, res, next) => {
+    try {
+      const assignmentId = req.params.id;
+      
+      // Toggle the grade release status
+      const updatedAssignment = await toggleGradeReleased(assignmentId);
+      
+      if (!updatedAssignment) {
+        return res.status(404).json({
+          status: 'error',
+          code: 404,
+          message: 'Assignment not found'
+        });
+      }
+      
+      return res.status(200).json({
+        status: 'success',
+        code: 200,
+        message: `Grades are now ${updatedAssignment.gradereleased ? 'released' : 'hidden'} for this assignment`,
+        data: {
+          assignmentId: updatedAssignment.assignmentid,
+          gradeReleased: updatedAssignment.gradereleased
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
+
 module.exports = { 
   getAssignments,
   getAssignmentUploadUrl,
-  createAssignment
+  createAssignment,
+  toggleGradeRelease
 };

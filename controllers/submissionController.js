@@ -4,7 +4,8 @@ const path = require('path');
 const { generateSubmissionResource, getPresignedUrlForGet } = require('../utils/resourceGenerators');
 const { generateSecureUploadUrl, verifyUploadToken } = require('../utils/secureUpload');
 const { getAssignmentById } = require('../models/Assignment');
-const { createSubmission, getSubmissionById, getLatestUserSubmissionByAssignment } = require('../models/Submission');
+const { createSubmission, getSubmissionById, getLatestUserSubmissionByAssignment, getSubmissionsByAssignment } = require('../models/Submission');
+const { getGradesBySubmission } = require('../models/Grade'); // Import grade functions
 const checkAbilityForResource = require('../middlewares/abilityMiddleware.js');
 const { getCourseById } = require('../models/Course');
 const { generateCourseResource } = require('../utils/resourceGenerators');
@@ -85,6 +86,23 @@ const otherUserSubmissionLoader = async (req) => {
   
   // Return the submission with the nested assignment and course for CASL checks
   return submission;
+};
+
+// Loader function for the assignment - used to check permissions for viewing all submissions
+const assignmentLoader = async (req) => {
+  const assignmentId = req.params.assignmentId;
+  
+  if (!assignmentId) {
+    throw { status: 400, message: 'Assignment ID is required', origin: 'Controller' };
+  }
+  
+  // Get the assignment to check if it exists
+  const assignment = await getAssignmentById(assignmentId);
+  if (!assignment) {
+    throw { status: 404, message: 'Assignment not found', origin: 'Database' };
+  }
+  
+  return assignment;
 };
 
 const getPresignedUrl = [
@@ -250,6 +268,30 @@ const getLatestUserSubmission = [
         delete responseData.filepath;
       }
       
+      // Get the assignment to check if grades are released
+      const assignment = await getAssignmentById(submission.assignmentid);
+      
+      // Only include grades if gradereleased is true or if the user is a teacher/TA
+      if (assignment.gradereleased || req.user.courseRole === 'teacher' || req.user.courseRole === 'ta') {
+        // Fetch grades for this submission
+        const grades = await getGradesBySubmission(submission.submissionid);
+        
+        // Add grades to the response data
+        responseData.grades = grades;
+        
+        // Add the latest grade score to the top level of the response for easy access
+        if (grades && grades.length > 0) {
+          // Get the most recent grade (highest gradeseq)
+          const latestGrade = grades.reduce((latest, grade) => 
+            grade.gradeseq > latest.gradeseq ? grade : latest, grades[0]);
+            
+          responseData.latestScore = latestGrade.score;
+          responseData.latestFeedback = latestGrade.feedback;
+          responseData.gradedBy = latestGrade.grader_name;
+          responseData.gradedAt = latestGrade.gradedat;
+        }
+      }
+      
       // Don't send the enriched objects (assignment and course details)
       if (responseData.assignment) {
         delete responseData.assignment;
@@ -298,6 +340,32 @@ const getOtherUserSubmission = [
         delete responseData.filepath;
       }
       
+      // Get the assignment to check if grades are released
+      const assignment = await getAssignmentById(submission.assignmentid);
+      
+      // Teachers and TAs can always see grades
+      // For consistency, we still check gradereleased even though this endpoint is only for teachers/TAs
+      // This way if the UI shows this data to students, it respects the gradereleased flag
+      if (assignment.gradereleased || req.user.courseRole === 'teacher' || req.user.courseRole === 'ta') {
+        // Fetch grades for this submission
+        const grades = await getGradesBySubmission(submission.submissionid);
+        
+        // Add grades to the response data
+        responseData.grades = grades;
+        
+        // Add the latest grade score to the top level of the response for easy access
+        if (grades && grades.length > 0) {
+          // Get the most recent grade (highest gradeseq)
+          const latestGrade = grades.reduce((latest, grade) => 
+            grade.gradeseq > latest.gradeseq ? grade : latest, grades[0]);
+            
+          responseData.latestScore = latestGrade.score;
+          responseData.latestFeedback = latestGrade.feedback;
+          responseData.gradedBy = latestGrade.grader_name;
+          responseData.gradedAt = latestGrade.gradedat;
+        }
+      }
+      
       // Don't send the enriched objects (assignment and course details)
       if (responseData.assignment) {
         delete responseData.assignment;
@@ -315,9 +383,97 @@ const getOtherUserSubmission = [
   }
 ];
 
+/**
+ * Get all submissions for a specific assignment with grades
+ * This endpoint is for teachers and TAs to see all student submissions
+ * with their grade information for an assignment
+ */
+const getAllSubmissionsForAssignment = [
+  // Apply CASL authorization - checks if user can "viewAnyUserSubmission" for this assignment
+  checkAbilityForResource('viewAnyUserSubmission', 'Submission', assignmentLoader),
+  
+  // Handler function after authorization passes
+  async (req, res, next) => {
+    try {
+      const assignmentId = req.params.assignmentId;
+      
+      // Get the assignment details for later use
+      const assignment = req.resource;
+      
+      // Query to get the latest submission per student for this assignment
+      const query = `
+        SELECT DISTINCT ON (s.studentid) 
+          s.*, 
+          u.name AS student_name, 
+          u.email AS student_email
+        FROM submission s
+        JOIN "User" u ON s.studentid = u.userid
+        WHERE s.assignmentid = $1
+        ORDER BY s.studentid, s.submitteddate DESC
+      `;
+      
+      const result = await pool.query(query, [assignmentId]);
+      const submissions = result.rows;
+      
+      // Process each submission to include grade and file URL
+      const processedSubmissions = await Promise.all(submissions.map(async (submission) => {
+        let responseData = { ...submission };
+        
+        // Generate a view-only URL for the submission file
+        if (submission.filepath) {
+          const viewUrl = await getPresignedUrlForGet(`classroom-uploads/${submission.filepath}`, 3600);
+          responseData.fileUrl = viewUrl;
+          
+          // Remove the raw filepath to avoid exposing storage paths
+          delete responseData.filepath;
+        }
+        
+        // Fetch grades for this submission
+        const grades = await getGradesBySubmission(submission.submissionid);
+        
+        // Find the latest grade (if any)
+        if (grades && grades.length > 0) {
+          // Sort to get the latest grade based on gradeseq
+          const latestGrade = grades.reduce((latest, grade) => 
+            grade.gradeseq > latest.gradeseq ? grade : latest, grades[0]);
+          
+          // Add grade information to response
+          responseData.grade = {
+            score: latestGrade.score,
+            feedback: latestGrade.feedback,
+            gradedBy: latestGrade.grader_name,
+            gradedAt: latestGrade.gradedat
+          };
+        } else {
+          // No grade exists
+          responseData.grade = null;
+        }
+        
+        return responseData;
+      }));
+      
+      // Return the processed submissions with grades
+      res.status(200).json({
+        status: 'success',
+        code: 200,
+        message: 'All submissions fetched successfully',
+        data: processedSubmissions,
+        assignment: {
+          title: assignment.title,
+          duedate: assignment.duedate,
+          defaultgrade: assignment.defaultgrade
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
+
 module.exports = {
   getPresignedUrl,
   createSubmissionRecord,
   getLatestUserSubmission,
-  getOtherUserSubmission
+  getOtherUserSubmission,
+  getAllSubmissionsForAssignment
 };
