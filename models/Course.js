@@ -115,6 +115,50 @@ const getCourseDetailsbyId = async (courseId) => {
 const getCoursesByUserId = async (userId) => {
   const query = `
    SELECT 
+    c.*,
+    u.name AS creator_name,
+    cp.role AS userrole
+FROM public.course c
+JOIN public.courseparticipation cp ON c.courseid = cp.courseid
+LEFT JOIN public."User" u ON c.createdby = u.userid
+WHERE cp.userid = $1
+  `;
+  const result = await pool.query(query, [userId]);
+  return result.rows;
+};
+
+
+const createCourse = async (userId, name, code, description, startDate, endDate) => {
+  const query = `
+    WITH new_course AS (
+      INSERT INTO public.course (name, code, description, startdate, enddate, createdby, createdat)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      RETURNING *
+    ),
+    participation AS (
+      INSERT INTO public.courseparticipation (courseid, userid, role, enrollmentdate)
+      SELECT courseid, $6, 'Professor', startdate FROM new_course
+      RETURNING courseid, userid, role, enrollmentdate
+    )
+    SELECT nc.*, p.enrollmentdate
+    FROM new_course nc
+    JOIN participation p ON nc.courseid = p.courseid;
+  `;
+
+  const values = [name, code, description, startDate, endDate, userId];
+
+  const result = await pool.query(query, values);
+  return result.rows[0]; // Returning the course details along with enrollment date
+};
+
+const isCourseCodeUnique = async (code) => {
+  const query = `SELECT COUNT(*) FROM public.course WHERE code = $1`;
+  const result = await pool.query(query, [code]);
+  return result.rows[0].count == 0;
+};
+
+const getCourseByCode = async (code) => {
+  const query = `SELECT * FROM public.course WHERE code = $1`;
   const result = await pool.query(query, [code]);
   return result.rows[0] || null;
 };
