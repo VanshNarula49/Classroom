@@ -68,11 +68,24 @@ services:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
+      # Configure MinIO host
       /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadminpassword;
+      
+      # Create bucket (if it doesn't already exist)
       /usr/bin/mc mb myminio/classroom-uploads --ignore-existing;
-      /usr/bin/mc policy set public myminio/classroom-uploads;
+      
+      # Set the bucket to private
+      /usr/bin/mc policy set private myminio/classroom-uploads;
+      
+      # Create CORS configuration to allow all domains for GET requests
+       echo '{\"CORSRules\":[{\"AllowedOrigins\":[\"*\"],\"AllowedMethods\":[\"GET\"],\"AllowedHeaders\":[\"*\"],\"ExposeHeaders\":[\"ETag\"],\"MaxAgeSeconds\":3000}]}' > /tmp/cors.json;
+      
+      # Apply CORS configuration to the bucket
+      /usr/bin/mc cors set myminio/classroom-uploads /tmp/cors.json || echo 'CORS setup attempted, continuing regardless of outcome';
+      
       exit 0;
       "
+
 
   memcached:
     image: memcached:latest

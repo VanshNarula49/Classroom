@@ -224,10 +224,54 @@ const joinCourseByCode = async (req, res, next) => {
   }
 };
 
+// Get user role in a specific course
+const getUserRole = [
+  checkAbilityForResource('read', 'Course', coursegen),
+  async (req, res, next) => {
+    try {
+      const courseId = req.params.id;
+      const userId = req.user.userId;
+      
+      if (!courseId || isNaN(courseId)) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Course ID is required and must be numeric.'
+        });
+      }
+      
+      // Get the user's participation record for this course
+      const participation = await getParticipationForCourse(userId, courseId);
+      
+      if (!participation) {
+        return res.status(404).json({
+          status: 'error',
+          code: 403,
+          message: 'You are not enrolled in this course.'
+        });
+      }
+      
+      res.json({
+        status: 'success',
+        code: 200,
+        message: 'User role fetched successfully.',
+        data: {
+          userId: userId,
+          courseId: parseInt(courseId),
+          role: participation.role
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
+
 module.exports = {
   addCourse,
   getCourses,
   getCourse,
   streamCourse,
-  joinCourseByCode
+  joinCourseByCode,
+  getUserRole
 };

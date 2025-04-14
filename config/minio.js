@@ -11,7 +11,7 @@ const DEFAULT_BUCKET = 'classroom-uploads'; // Default bucket for file uploads
 // Create an S3 client for Minio (forcePathStyle is required)
 const s3Client = new S3Client({
   endpoint: MINIO_ENDPOINT,
-  region: 'us-east-1',
+  region: 'classroom-dockerized-network',
   credentials: {
     accessKeyId: MINIO_ACCESS_KEY,
     secretAccessKey: MINIO_SECRET_KEY,

@@ -190,8 +190,8 @@ COPY public.announcement (announcementid, courseid, title, content, createdby, c
 --
 
 COPY public.assignment (assignmentid, title, description, duedate, resources, assignmenttype, gradereleased, defaultgrade, courseid, createdby, createdat) FROM stdin;
-1	Mean another likely up beyond	Three agent then close. Yet assume like myself trip. Key ability leg majority.	2025-02-19 19:10:36	https://www.sanford.com/	Offline	f	0.00	1	94	2025-02-16 19:10:36
-2	Piece himself well attack	Art change provide why laugh beyond seven. Fine challenge different everything onto before every.	2025-03-12 19:10:36	http://pacheco.org/	Online	f	0.00	1	2	2025-02-16 19:10:36
+1	Mean another likely up beyond	Three agent then close. Yet assume like myself trip. Key ability leg majority.	2026-02-19 19:10:36	https://www.sanford.com/	Offline	f	0.00	1	94	2025-02-16 19:10:36
+2	Piece himself well attack	Art change provide why laugh beyond seven. Fine challenge different everything onto before every.	2026-03-12 19:10:36	http://pacheco.org/	Online	f	0.00	1	2	2025-02-16 19:10:36
 3	Serve decade reduce fly account	Benefit high glass discover once. List meeting large civil arrive. Least cause prove successful once.	2025-02-17 19:10:36	http://wilson-wiggins.com/	Online	f	0.00	1	94	2025-02-16 19:10:36
 4	White land and prepare	Effort box send last term customer. Century machine assume cup three. Record now speech usually tonight none important mother.	2025-02-28 19:10:36	https://www.harper.com/	Offline	f	0.00	1	71	2025-02-16 19:10:36
 5	Usually east church prepare	Ago he represent happy lot else. Role citizen him long great cell amount agency.	2025-02-17 19:10:36	https://tanner-duran.com/	Online	f	0.00	1	71	2025-02-16 19:10:36
