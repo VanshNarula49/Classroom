@@ -99,6 +99,7 @@ const MaterialDetail = () => {
           </div>
         </CardContent>
       </Card>
+
     </div>
   );
 };

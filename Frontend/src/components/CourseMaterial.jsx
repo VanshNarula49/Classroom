@@ -1,46 +1,56 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import { toast, Toaster } from "sonner";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import MaterialTable from "./ui/materials-table";
+import { Button } from "@/components/ui/button";
+import MaterialUploadDrawer from "./ui/material-drawer";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const CourseMaterial = () => {
   const { courseId } = useParams();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [courseName, setCourseName] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
-    const fetchMaterials = async () => { 
+    const fetchMaterialsAndRole = async () => {
       try {
-        const res = await axiosInstance.get(`${API_URL}/api/material/${courseId}`);
-        setMaterials(res.data.data);
-        
-        // Optionally fetch course name if available in your API
-        if (res.data.course_name) {
-          setCourseName(res.data.course_name);
+        const [materialsRes, roleRes] = await Promise.all([
+          axiosInstance.get(`${API_URL}/api/material/${courseId}`),
+          axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`)
+        ]);
+
+        setMaterials(materialsRes.data.data);
+        if (materialsRes.data.data.course_name) {
+          setCourseName(materialsRes.data.data.course_name);
         }
+        console.log(materialsRes.data.data);
+        console.log(materials);
+
+        setUserRole(roleRes.data.data.role);
       } catch (err) {
         toast.error(
           <div align="left">
-            <strong>Failed to load materials</strong>
+            <strong>Failed to load data</strong>
             <br />
-            {err.response?.data?.message || "Could not retrieve course materials"}
+            {err.response?.data?.message || "Something went wrong while fetching course information."}
           </div>
         );
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchMaterials();
+
+    fetchMaterialsAndRole();
   }, [courseId]);
 
   return (
-    <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border">
+    <div className="flex-1 h-screen p-6 overflow-auto bg-background box-border relative">
       <Toaster position="top-right" richColors />
       <Card className="w-full">
         <CardContent>
@@ -53,6 +63,22 @@ const CourseMaterial = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Upload Button */}
+      {userRole && userRole !== "Student" && (
+        <Button
+          onClick={() => setIsDrawerOpen(true)}
+          className="fixed bottom-6 right-6 bg-primary text-white rounded-full shadow-lg px-4 py-2"
+        >
+          Upload Material
+        </Button>
+      )}
+
+      <MaterialUploadDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onUploadComplete={() => window.location.reload()}
+      />
     </div>
   );
 };
