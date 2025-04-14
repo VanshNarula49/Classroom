@@ -1,24 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card, CardContent, CardFooter, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, FileText, Clock, User } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast, Toaster } from "sonner";
 import SubmissionDrawer from './SubmissionDrawer';
+import {
+  Popover, PopoverTrigger, PopoverContent
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const Assignment = () => {
   const { assignmentId } = useParams();
+  const { courseId } = useParams();
   const location = useLocation();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState(null);
+  const [userRole, setUserRole] = useState("");
+
+  const fetchUserRole = async (assignmentId) => {
+    try {
+      const res = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`);
+      if (res.data?.data?.role) {
+        setUserRole(res.data.data.role);
+      }
+    } catch (error) {
+      console.error("Error fetching user role", error);
+    }
+  };
 
   const fetchSubmission = async () => {
     try {
@@ -43,25 +62,27 @@ const Assignment = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchAssignmentDetails = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get(`${API_URL}/api/assignment/details/${assignmentId}`);
-        setAssignment(response.data.data);
-      } catch (err) {
-        toast.error(
-          <div align="left">
-            <strong>Failed to load assignment details</strong><br />
-            {err.response?.data?.message || "Could not retrieve assignment details"}
-          </div>
-        );
-        console.error(err);
-      } finally {
+  const fetchAssignmentDetails = async () => {
+    try {
+      const res = await axiosInstance.get(`${API_URL}/api/assignments/${assignmentId}`);
+      if (res.data.status === "success") {
+        setAssignment(res.data.data);
         setLoading(false);
       }
-    };
-  
+    } catch (error) {
+      setLoading(false);
+      toast.error(
+        <div align="left">
+          <strong>Failed to load assignment</strong><br />
+          {error.response?.data?.message || "Unexpected error occurred."}
+        </div>
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchUserRole(assignmentId);
+
     if (location.state?.assignment) {
       setAssignment(location.state.assignment);
       setLoading(false);
@@ -69,7 +90,7 @@ const Assignment = () => {
     } else {
       fetchAssignmentDetails().then(fetchSubmission);
     }
-  }, [assignmentId, location.state]);  
+  }, [assignmentId, location.state]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -99,9 +120,7 @@ const Assignment = () => {
     }
   };
 
-  const handleSubmitClick = () => {
-    setIsDrawerOpen(true);
-  };
+  const handleSubmitClick = () => setIsDrawerOpen(true);
 
   const handleViewResource = () => {
     if (assignment.resources) {
@@ -129,6 +148,48 @@ const Assignment = () => {
     }
   };
 
+  const renderGradePopover = () => {
+    if (!submission?.grades || submission.grades.length === 0) return null;
+
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Badge variant="outline" className="cursor-pointer hover:bg-gray-100 text-sm">
+            Grade: {submission.latestScore}/{assignment.defaultgrade}
+          </Badge>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-4 shadow-xl border-gray-300">
+          <div className="mb-2">
+            <p className="text-gray-800 mb-1">Score: <strong>{submission.latestScore}/{assignment.defaultgrade}</strong></p>
+            <p className="text-gray-800 mb-1">By: {submission.gradedBy}</p>
+            <p className="text-gray-500 text-xs">At: {formatDate(submission.gradedAt)}</p>
+            {submission.latestFeedback && (
+              <p className="mt-2 text-sm italic text-gray-600">
+                "{submission.latestFeedback}"
+              </p>
+            )}
+          </div>
+          <Separator className="my-3" />
+          <p className="text-xs font-medium text-gray-500 mb-2">Grade History</p>
+          <ScrollArea className="h-36 pr-2">
+            <ul className="space-y-2 text-sm">
+              {submission.grades.map((g) => (
+                <li key={g.gradeid} className="border-b pb-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{g.gradeseq}: {g.score}/{assignment.defaultgrade}</span>
+                    <span className="text-xs text-gray-400">{formatDate(g.gradedat)}</span>
+                  </div>
+                  {g.feedback && <p className="text-gray-600 italic">"{g.feedback}"</p>}
+                  <p className="text-gray-700">By: {g.grader_name}</p>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   if (loading) return <div className="flex justify-center items-center h-64">Loading assignment details...</div>;
   if (!assignment) return <div className="p-4">Assignment not found</div>;
 
@@ -139,8 +200,9 @@ const Assignment = () => {
       <Card className="mx-auto min-w-3xl max-w-4xl border-black">
         <CardHeader className="pb-4">
           <div className="flex flex-col space-y-2">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start">
               <CardTitle className="text-2xl font-bold">{assignment.title}</CardTitle>
+              {renderGradePopover()}
             </div>
 
             <div className="flex justify-between items-center text-sm text-gray-600">
@@ -180,62 +242,72 @@ const Assignment = () => {
             )}
           </div>
 
-          <Separator className="my-5" />
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium mb-2">Submission</h3>
-                <p className="text-gray-600">
-                  Status:{" "}
-                  <span
-                    className={`font-medium ${
-                      isPastDue() && !submission
-                        ? "text-red-600"
+        {userRole === "Student" && (
+          <>
+            <Separator className="my-5" />
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Submission</h3>
+                  <p className="text-gray-600">
+                    Status:{" "}
+                    <span
+                      className={`font-medium ${
+                        isPastDue() && !submission
+                          ? "text-red-600"
+                          : submission
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {isPastDue() && !submission
+                        ? "Missed"
                         : submission
-                        ? "text-green-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {isPastDue() && !submission
-                      ? "Missed"
-                      : submission
-                      ? "Submitted"
-                      : "Not Submitted"}
-                  </span>
-                </p>
+                        ? "Submitted"
+                        : "Not Submitted"}
+                    </span>
+                  </p>
 
-                {submission ? (
-                  <p className="text-gray-600 text-sm mt-1">
-                    Submitted on: <span className="font-medium">{formatDate(submission.submittedDate)}</span>
-                  </p>
-                ) : !isPastDue() && (
-                  <p className="text-gray-600 text-sm mt-1">
-                    Due in: <span className="font-medium">{getTimeRemaining(assignment.duedate)}</span>
-                  </p>
-                )}
-              </div>
-              <div className="flex space-x-2">
-                {submission && (
-                  <Button
-                    variant="outline"
-                    onClick={handleViewSubmission}
-                    className="text-black border-black"
-                  >
-                    View Submission
-                  </Button>
-                )}
-                {!isPastDue() && (
-                  <Button
-                    onClick={handleSubmitClick}
-                    className="bg-black text-white hover:bg-gray-800"
-                  >
-                    {submission ? "Resubmit Assignment" : "Submit Assignment"}
-                  </Button>
-                )}
+                  {submission ? (
+                    <p className="text-gray-600 text-sm mt-1">
+                      Submitted on:{" "}
+                      <span className="font-medium">
+                        {formatDate(submission.submittedDate)}
+                      </span>
+                    </p>
+                  ) : !isPastDue() && (
+                    <p className="text-gray-600 text-sm mt-1">
+                      Due in:{" "}
+                      <span className="font-medium">
+                        {getTimeRemaining(assignment.duedate)}
+                      </span>
+                    </p>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  {submission && (
+                    <Button
+                      variant="outline"
+                      onClick={handleViewSubmission}
+                      className="text-black border-black"
+                    >
+                      View Submission
+                    </Button>
+                  )}
+                  {!isPastDue() && (
+                    <Button
+                      onClick={handleSubmitClick}
+                      className="bg-black text-white hover:bg-gray-800"
+                    >
+                      {submission ? "Resubmit Assignment" : "Submit Assignment"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </>
+        )}
+
         </CardContent>
 
         <CardFooter className="text-sm text-gray-500 border-t pt-4">
@@ -250,9 +322,7 @@ const Assignment = () => {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         assignmentTitle={assignment.title}
-        onSubmissionComplete={() => {
-          fetchSubmission(); // ✅ refetch immediately after resubmission
-        }}
+        onSubmissionComplete={fetchSubmission}
       />
     </div>
   );

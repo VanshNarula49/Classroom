@@ -1,4 +1,3 @@
-// 📌 Signup.jsx
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { registerUser } from "../services/authServices";
