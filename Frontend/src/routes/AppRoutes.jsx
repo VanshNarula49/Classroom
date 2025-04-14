@@ -15,6 +15,7 @@ import CourseAssignment from "@/components/CourseAssignments";
 import Assignment from "@/components/Assignment";
 import App from "@/pages/queries";
 import AnnouncementDetail from "@/components/Announcement";
+import Submissions from "@/components/Submissions";
 
 const AppRoutes = () => {
   const { token } = useContext(AuthContext);
@@ -30,7 +31,7 @@ const AppRoutes = () => {
     ) : (
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/another" element={<AnotherPage />} />
+        <Route path="/another" element={<Submissions />} />
 
         <Route path="/courses/:courseId" element={<CourseLayout />}>
               <Route index element={<CourseStream />} />
@@ -40,7 +41,7 @@ const AppRoutes = () => {
               <Route path="assignments" element={<CourseAssignment />} />
               <Route path="assignments/:assignmentId" element={<Assignment />} />
               <Route path="announcements/:announcementId" element={<AnnouncementDetail />} />
-
+              <Route path="assignments/:assignmentId/submissions" element={<Submissions/>} />
         </Route>
 
         <Route index element={<Navigate to="/dashboard" />} />
