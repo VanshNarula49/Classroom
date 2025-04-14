@@ -144,7 +144,7 @@ const AssignmentTable = ({ assignments }) => {
             </TableCell>
             {userRole && userRole !== "Student" && (
               <TableCell className="text-center">
-                <Link to={`${assignment.assignmentid}/submissions`}>
+                <Link to={`${assignment.assignmentid}/submissions`} state={{ assignment }}>
                   <Button variant="secondary" size="sm">View Submissions</Button>
                 </Link>
               </TableCell>

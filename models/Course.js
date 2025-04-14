@@ -28,93 +28,93 @@ GROUP BY c.courseid;
 };
 
 const getCourseDetailsbyId = async (courseId) => {
-  const query = `SELECT 
-  c.courseid,
-  c.name,
-  c.description,
-  c.code,
-  createdbyUser.name AS createdbyName,
-  COALESCE(
-    ARRAY_AGG(DISTINCT CASE WHEN UPPER(cp.role) = 'TA' THEN u.name END)
-    FILTER (WHERE UPPER(cp.role) = 'TA'),
-    '{}'::text[]
-  ) AS taNames,
-  COALESCE(
-    ARRAY_AGG(DISTINCT CASE WHEN UPPER(cp.role) = 'STUDENT' THEN u.name END)
-    FILTER (WHERE UPPER(cp.role) = 'STUDENT'),
-    '{}'::text[]
-  ) AS enrolledStudentNames,
-  COALESCE(
-    ARRAY_AGG(DISTINCT CASE WHEN UPPER(cp.role) = 'PROFESSOR' THEN u.name END)
-    FILTER (WHERE UPPER(cp.role) = 'PROFESSOR'),
-    '{}'::text[]
-  ) AS professorNames
-FROM public.course c
-LEFT JOIN public.courseparticipation cp ON c.courseid = cp.courseid
-LEFT JOIN public."User" u ON cp.userid = u.userid
-LEFT JOIN public."User" createdbyUser ON c.createdby = createdbyUser.userid
-WHERE c.courseid = $1
-GROUP BY c.courseid, c.name, c.description, c.createdby, createdbyUser.name;
-`;
+  // First, get the basic course information
+  const courseQuery = `
+    SELECT 
+      c.courseid,
+      c.name,
+      c.description,
+      c.code,
+      c.createdby,
+      u.name AS createdbyName,
+      u.email AS createdbyEmail
+    FROM public.course c
+    LEFT JOIN public."User" u ON c.createdby = u.userid
+    WHERE c.courseid = $1
+  `;
+
+  // Query to get all participants with their details
+  const participantsQuery = `
+    SELECT 
+      cp.userid,
+      cp.role,
+      u.name,
+      u.email
+    FROM public.courseparticipation cp
+    JOIN public."User" u ON cp.userid = u.userid
+    WHERE cp.courseid = $1
+  `;
 
   try {
-    const result = await pool.query(query, [courseId]);
-    if (result.rows.length === 0) return null;
-    return result.rows[0];
+    // Get course basic details
+    const courseResult = await pool.query(courseQuery, [courseId]);
+    if (courseResult.rows.length === 0) return null;
+    
+    const course = courseResult.rows[0];
+    
+    // Get all participants
+    const participantsResult = await pool.query(participantsQuery, [courseId]);
+    
+    // Initialize arrays for each role
+    const professors = [];
+    const teachingAssistants = [];
+    const students = [];
+    
+    // Process participants by role
+    participantsResult.rows.forEach(participant => {
+      const participantObj = {
+        id: participant.userid,
+        name: participant.name,
+        email: participant.email
+      };
+      
+      // Add to the appropriate array based on role
+      if (participant.role.toUpperCase() === 'PROFESSOR') {
+        professors.push(participantObj);
+      } else if (participant.role.toUpperCase() === 'TA') {
+        teachingAssistants.push(participantObj);
+      } else if (participant.role.toUpperCase() === 'STUDENT') {
+        students.push(participantObj);
+      }
+    });
+    
+    // Add participants to the course object
+    course.createdBy = {
+      id: course.createdby,
+      name: course.createdbyname,
+      email: course.createdbyemail
+    };
+    
+    // Replace the simple fields with objects
+    course.professors = professors;
+    course.teachingAssistants = teachingAssistants;
+    course.students = students;
+    
+    // Clean up redundant fields
+    delete course.createdby;
+    delete course.createdbyname;
+    delete course.createdbyemail;
+    
+    return course;
   } catch (error) {
+    console.error('Error fetching course details:', error);
     throw error;
   }
 };
 
-
-
 const getCoursesByUserId = async (userId) => {
   const query = `
    SELECT 
-    c.*,
-    u.name AS creator_name,
-    cp.role AS userrole
-FROM public.course c
-JOIN public.courseparticipation cp ON c.courseid = cp.courseid
-LEFT JOIN public."User" u ON c.createdby = u.userid
-WHERE cp.userid = $1
-  `;
-  const result = await pool.query(query, [userId]);
-  return result.rows;
-};
-
-
-const createCourse = async (userId, name, code, description, startDate, endDate) => {
-  const query = `
-    WITH new_course AS (
-      INSERT INTO public.course (name, code, description, startdate, enddate, createdby, createdat)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW())
-      RETURNING *
-    ),
-    participation AS (
-      INSERT INTO public.courseparticipation (courseid, userid, role, enrollmentdate)
-      SELECT courseid, $6, 'Professor', startdate FROM new_course
-      RETURNING courseid, userid, role, enrollmentdate
-    )
-    SELECT nc.*, p.enrollmentdate
-    FROM new_course nc
-    JOIN participation p ON nc.courseid = p.courseid;
-  `;
-
-  const values = [name, code, description, startDate, endDate, userId];
-
-  const result = await pool.query(query, values);
-  return result.rows[0]; // Returning the course details along with enrollment date
-};
-
-const isCourseCodeUnique = async (code) => {
-  const query = `SELECT COUNT(*) FROM public.course WHERE code = $1`;
-  const result = await pool.query(query, [code]);
-  return result.rows[0].count == 0;
-};
-
-const getCourseByCode = async (code) => {
-  const query = `SELECT * FROM public.course WHERE code = $1`;
   const result = await pool.query(query, [code]);
   return result.rows[0] || null;
 };

@@ -231,6 +231,42 @@ const assignmentLoader = async (req) => {
 };
 
 /**
+ * Controller to get a single assignment by ID.
+ * Uses a CASL middleware to ensure the current user is allowed to read the assignment.
+ *
+ * Route: GET /assignments/single/:id
+ */
+const getAssignment = [
+  checkAbilityForResource('read', 'Assignment', assignmentLoader),
+  async (req, res, next) => {
+    try {
+      const assignmentId = req.params.id;
+      const assignment = await getAssignmentById(assignmentId);
+      const fileUrl = await getPresignedUrlForGet(`classroom-uploads/${assignment.resources}`, 3600);
+      assignment.resources = fileUrl; // Add fileUrl to the assignment object
+      delete assignment.course; // Remove course ID from response
+      if (!assignment) {
+        return res.status(404).json({
+          status: 'error',
+          code: 404,
+          message: 'Assignment not found'
+        });
+      }
+      
+      // Return just the assignment object without enrichment
+      res.json({
+        status: 'success',
+        code: 200,
+        message: 'Assignment fetched successfully.',
+        data: assignment
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
+
+/**
  * Controller to toggle the grade release status of an assignment.
  * Only teachers of the course can toggle grade release status.
  *
@@ -274,5 +310,6 @@ module.exports = {
   getAssignments,
   getAssignmentUploadUrl,
   createAssignment,
-  toggleGradeRelease
+  toggleGradeRelease,
+  getAssignment
 };

@@ -67,14 +67,18 @@ const createAssignment = async (assignmentData) => {
 
 /**
  * Toggle the grade release status of an assignment
+ * Sets it to true if it was null
  * @param {number} assignmentId - The ID of the assignment
  * @returns {Object} The updated assignment
  */
 const toggleGradeReleased = async (assignmentId) => {
-  // SQL query to toggle the gradereleased status
+  // SQL query to toggle the gradereleased status, handling NULL values
   const query = `
     UPDATE assignment
-    SET gradereleased = NOT gradereleased
+    SET gradereleased = CASE 
+                          WHEN gradereleased IS NULL THEN true 
+                          ELSE NOT gradereleased 
+                        END
     WHERE assignmentid = $1
     RETURNING *
   `;

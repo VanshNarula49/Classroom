@@ -5,7 +5,8 @@ const {
   createAssignment, 
   getAssignments, 
   getAssignmentUploadUrl,
-  toggleGradeRelease
+  toggleGradeRelease,
+  getAssignment
 } = require('../controllers/AssignmentController');
 const router = express.Router();
 
@@ -14,6 +15,9 @@ router.post('/:id', authenticateJWT, createAssignment);
 
 // Get assignments (students, teachers, and TAs)
 router.get('/:id', authenticateJWT, getAssignments);
+
+// Get a specific assignment by ID (students, teachers, and TAs)
+router.get('/single/:id', authenticateJWT, getAssignment);
 
 // Get a presigned URL for uploading assignment files
 router.get('/:id/presigned-url', authenticateJWT, getAssignmentUploadUrl);

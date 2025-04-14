@@ -20,15 +20,13 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword
       
-      # Memcached connection
-      - MEMCACHED_HOST=memcached
-      - MEMCACHED_PORT=11211
+    
     ports:
       - "3000:3000"
     depends_on:
       - db
       - minio
-      - memcached
+  
 
   db:
     image: postgres:13
@@ -87,10 +85,7 @@ services:
       "
 
 
-  memcached:
-    image: memcached:latest
-    container_name: memcached
-    # No ports mapping; accessible only within the Docker network
+
 
 volumes:
   minio_data:
