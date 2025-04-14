@@ -162,11 +162,11 @@ const CoursePeople = () => {
                   <div className="pt-2 border-t">
                     <Badge variant={
                       role === "professor" ? "default" : 
-                      role === "ta" ? "secondary" : 
+                      role === "teachingAssistant" ? "secondary" : 
                       "outline"
                     }>
                       {role === "professor" ? "Professor" : 
-                       role === "TA" ? "Teaching Assistant" : 
+                       role === "teachingAssistant" ? "Teaching Assistant" : 
                        "Student"}
                     </Badge>
                   </div>

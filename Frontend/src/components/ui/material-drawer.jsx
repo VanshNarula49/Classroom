@@ -132,11 +132,13 @@ const MaterialUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200"
               >
                 <option value="lecture">Lecture</option>
-                <option value="assignment">Assignment</option>
+                <option value="document">Document</option>
+                <option value="assignment">Assignment Support</option>
                 <option value="quiz">Quiz</option>
+                <option value="resource">Additional Resource</option>
               </select>
             </div>
 
