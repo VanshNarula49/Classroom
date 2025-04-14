@@ -1,10 +1,122 @@
+// import React, { useState, useEffect } from "react";
+// import { useParams } from "react-router-dom";
+// import axiosInstance from "@/utils/axiosInstance";
+// import MaterialCard from "./ui/material-stream";
+// import AssignmentCard from "./ui/assignment-stream";
+// import AnnouncementCard from "./ui/announcement-stream";
+// import { toast, Toaster } from "sonner";
+
+// const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// export default function StreamView() {
+//   const { courseId } = useParams();
+//   const [streamItems, setStreamItems] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [courseName, setCourseName] = useState("");
+
+//   useEffect(() => {
+//     const fetchCourseStream = async () => {
+//       try {
+//         const response = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/stream`);
+//         if (response.data.status === "success") {
+//           // Set stream items from the response data
+//           setStreamItems(response.data.data);
+//         } else {
+//           toast.error(
+//             <div align="left">
+//               <strong>Could not load stream items</strong>
+//               <br />
+//               {response.data.message || "Unknown error occurred"}
+//             </div>
+//           );
+//         }
+//       } catch (err) {
+//         toast.error(
+//           <div align="left">
+//             <strong>Failed to load course stream</strong>
+//             <br />
+//             {err.response?.data?.message || "Could not retrieve course information"}
+//           </div>
+//         );
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchCourseStream();
+//   }, [courseId]);
+
+//   if (loading) {
+//     return <div className="flex-1 p-6 text-muted-foreground">Loading course stream...</div>;
+//   }
+
+//   if (streamItems.length === 0) {
+//     return <div className="flex-1 p-6 text-muted-foreground">No items in this course stream yet.</div>;
+//   }
+
+//   return (
+//     <div className="flex-1 w-full max-w-3xl mx-auto p-4">
+//       <Toaster position="top-right" richColors />
+      
+//       <div className="flex flex-col space-y-3 w-full">
+//         {streamItems.map((item) => {
+//           console.log(item)
+//           switch (item.type) {
+//             case "announcement":
+//               return (
+//                 <AnnouncementCard
+//                   key={`/announcements/${item.id}`}
+//                   id = {item.id}
+//                   title={item.title}
+//                   createdBy={item.creator_name}
+//                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+//                   content={item.content}
+//                 />
+//               );
+//             case "assignment":
+//               return (
+//                 <AssignmentCard
+//                   key={`/assignments/${item.id}`}
+//                   id={item.id} // ✅ Pass the id prop
+//                   title={item.title}
+//                   createdBy={item.creator_name}
+//                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+//                   dueDate={item.duedate && new Date(item.duedate).toLocaleDateString()}
+//                   description={item.description}
+//                   assignmentType={item.assignmenttype}
+//                   item = {item}
+//                 />
+//               );
+//             case "material":
+//               return (
+//                 <MaterialCard
+//                   key={`/materials/${item.id}`}
+//                   id={item.id} // ✅ Pass the id prop
+//                   title={item.title}
+//                   createdBy={item.creator_name}
+//                   createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+//                   type={item.material_type}
+//                   description={item.description}
+//                   filepath={item.filepath}
+//                 />
+//               );
+//             default:
+//               return null;
+//           }
+//         })}
+//       </div>
+//     </div>
+//   );
+// }
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
 import MaterialCard from "./ui/material-stream";
 import AssignmentCard from "./ui/assignment-stream";
 import AnnouncementCard from "./ui/announcement-stream";
+import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
+import AnnouncementDialog from "./ui/announcement-dialog";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -12,28 +124,36 @@ export default function StreamView() {
   const { courseId } = useParams();
   const [streamItems, setStreamItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [courseName, setCourseName] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchCourseStream = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/stream`);
-        if (response.data.status === "success") {
-          // Set stream items from the response data
-          setStreamItems(response.data.data);
+        // Fetch stream items and user role in parallel
+        const [streamResponse, roleResponse] = await Promise.all([
+          axiosInstance.get(`${API_URL}/api/courses/${courseId}/stream`),
+          axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`)
+        ]);
+
+        if (streamResponse.data.status === "success") {
+          setStreamItems(streamResponse.data.data);
         } else {
           toast.error(
             <div align="left">
               <strong>Could not load stream items</strong>
               <br />
-              {response.data.message || "Unknown error occurred"}
+              {streamResponse.data.message || "Unknown error occurred"}
             </div>
           );
         }
+
+        // Set user role
+        setUserRole(roleResponse.data.data.role);
       } catch (err) {
         toast.error(
           <div align="left">
-            <strong>Failed to load course stream</strong>
+            <strong>Failed to load course data</strong>
             <br />
             {err.response?.data?.message || "Could not retrieve course information"}
           </div>
@@ -43,68 +163,101 @@ export default function StreamView() {
       }
     };
 
-    fetchCourseStream();
+    fetchData();
   }, [courseId]);
+
+  const handleAnnouncementPosted = (newAnnouncement) => {
+    // Add the new announcement to the stream items at the top
+    if (newAnnouncement) {
+      const announcementStreamItem = {
+        ...newAnnouncement,
+        type: "announcement",
+        id: newAnnouncement.announcementid,
+        creator_name: newAnnouncement.createdBy || "Instructor", // Fallback name
+        stream_createdat: newAnnouncement.createdat
+      };
+      
+      setStreamItems(prevItems => [announcementStreamItem, ...prevItems]);
+    }
+  };
 
   if (loading) {
     return <div className="flex-1 p-6 text-muted-foreground">Loading course stream...</div>;
   }
 
-  if (streamItems.length === 0) {
-    return <div className="flex-1 p-6 text-muted-foreground">No items in this course stream yet.</div>;
-  }
-
   return (
-    <div className="flex-1 w-full max-w-3xl mx-auto p-4">
+    <div className="flex-1 w-full max-w-3xl mx-auto p-4 relative">
       <Toaster position="top-right" richColors />
       
-      <div className="flex flex-col space-y-3 w-full">
-        {streamItems.map((item) => {
-          console.log(item)
-          switch (item.type) {
-            case "announcement":
-              return (
-                <AnnouncementCard
-                  key={`/announcements/${item.id}`}
-                  id = {item.id}
-                  title={item.title}
-                  createdBy={item.creator_name}
-                  createdAt={new Date(item.stream_createdat).toLocaleDateString()}
-                  content={item.content}
-                />
-              );
-            case "assignment":
-              return (
-                <AssignmentCard
-                  key={`/assignments/${item.id}`}
-                  id={item.id} // ✅ Pass the id prop
-                  title={item.title}
-                  createdBy={item.creator_name}
-                  createdAt={new Date(item.stream_createdat).toLocaleDateString()}
-                  dueDate={item.duedate && new Date(item.duedate).toLocaleDateString()}
-                  description={item.description}
-                  assignmentType={item.assignmenttype}
-                  item = {item}
-                />
-              );
-            case "material":
-              return (
-                <MaterialCard
-                  key={`/materials/${item.id}`}
-                  id={item.id} // ✅ Pass the id prop
-                  title={item.title}
-                  createdBy={item.creator_name}
-                  createdAt={new Date(item.stream_createdat).toLocaleDateString()}
-                  type={item.material_type}
-                  description={item.description}
-                  filepath={item.filepath}
-                />
-              );
-            default:
-              return null;
-          }
-        })}
-      </div>
+      {streamItems.length === 0 ? (
+        <div className="text-muted-foreground text-center py-8">
+          No items in this course stream yet.
+        </div>
+      ) : (
+        <div className="flex flex-col space-y-3 w-full">
+          {streamItems.map((item) => {
+            switch (item.type) {
+              case "announcement":
+                return (
+                  <AnnouncementCard
+                    key={`announcement-${item.id}`}
+                    id={item.id}
+                    title={item.title}
+                    createdBy={item.creator_name}
+                    createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+                    content={item.content}
+                  />
+                );
+              case "assignment":
+                return (
+                  <AssignmentCard
+                    key={`assignment-${item.id}`}
+                    id={item.id}
+                    title={item.title}
+                    createdBy={item.creator_name}
+                    createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+                    dueDate={item.duedate && new Date(item.duedate).toLocaleDateString()}
+                    description={item.description}
+                    assignmentType={item.assignmenttype}
+                    item={item}
+                  />
+                );
+              case "material":
+                return (
+                  <MaterialCard
+                    key={`material-${item.id}`}
+                    id={item.id}
+                    title={item.title}
+                    createdBy={item.creator_name}
+                    createdAt={new Date(item.stream_createdat).toLocaleDateString()}
+                    type={item.material_type}
+                    description={item.description}
+                    filepath={item.filepath}
+                  />
+                );
+              default:
+                return null;
+            }
+          })}
+        </div>
+      )}
+      
+      {/* Create Announcement Button - Only visible to non-student users */}
+      {userRole && userRole !== "Student" && (
+        <Button
+          onClick={() => setIsAnnouncementDialogOpen(true)}
+          className="fixed bottom-6 right-6 bg-primary text-white rounded-full shadow-lg px-4 py-2"
+        >
+          Create Announcement
+        </Button>
+      )}
+      
+      {/* Announcement Dialog */}
+      <AnnouncementDialog
+        isOpen={isAnnouncementDialogOpen}
+        onClose={() => setIsAnnouncementDialogOpen(false)}
+        onAnnouncementPosted={handleAnnouncementPosted}
+      />
     </div>
   );
 }
