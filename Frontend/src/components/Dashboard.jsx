@@ -27,7 +27,7 @@ export default function Dashboard() {
     };
 
     fetchClasses();
-  });
+  }, []);
 
   return (
     <div className="mx-auto px-2">
