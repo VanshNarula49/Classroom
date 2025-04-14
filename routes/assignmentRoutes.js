@@ -1,16 +1,16 @@
 // /routes/assignmentRoutes.js
 const express = require('express');
 const authenticateJWT = require('../middlewares/authMiddleware');
-const { createAssignment, getAssignments, submitAssignment } = require('../controllers/AssignmentController');
+const { createAssignment, getAssignments, getAssignmentUploadUrl } = require('../controllers/AssignmentController');
 const router = express.Router();
 
 // Create a new assignment (only teachers and TAs)
-// router.post('/', authenticateJWT, createAssignment);
+router.post('/:id', authenticateJWT, createAssignment);
 
 // Get assignments (students, teachers, and TAs)
 router.get('/:id', authenticateJWT, getAssignments);
 
-// Submit an assignment (students)
-// router.post('/submit', authenticateJWT, submitAssignment);
+// Get a presigned URL for uploading assignment files
+router.get('/:id/presigned-url', authenticateJWT, getAssignmentUploadUrl);
 
 module.exports = router;

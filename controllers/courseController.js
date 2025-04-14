@@ -12,6 +12,7 @@ const {
 } = require('../models/Course');
 const { getParticipationForCourse, joinCourse } = require('../models/courseParticipation');
 const { generateCourseResource } = require('../utils/resourceGenerators');
+const { getPresignedUrlForGet } = require('../config/minio');
 const validator = require('validator');
 const crypto = require('crypto');
 
@@ -148,27 +149,60 @@ const addCourse = async (req, res, next) => {
 };
 
 // Stream: Retrieve announcements, assignments, and materials in one aggregated result
-const streamCourse = [ checkAbilityForResource('read', 'Course', coursegen),async (req, res, next) => {
-  try {
-    const courseId = req.params.id;
-    if (!courseId || isNaN(courseId)) {
-      return res.status(400).json({
-        status: 'error',
-        code: 400,
-        message: 'Course ID is required and must be numeric.'
+const streamCourse = [ 
+  checkAbilityForResource('read', 'Course', coursegen),
+  async (req, res, next) => {
+    try {
+      const courseId = req.params.id;
+      if (!courseId || isNaN(courseId)) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Course ID is required and must be numeric.'
+        });
+      }
+      
+      // Get stream data from database
+      const results = await stream(courseId);
+      
+      // Generate signed URLs for material files
+      const processedResults = await Promise.all(results.map(async (item) => {
+        // Only process items of type 'material' that have a filepath
+        if (item.type === 'material' && item.filepath) {
+          // Create a presigned URL for the file with 1 hour expiration
+          const fileUrl = await getPresignedUrlForGet(`classroom-uploads/${item.filepath}`, 3600);
+          
+          // Add the signed URL to the item and remove the raw filepath
+          return {
+            ...item,
+            filepath: fileUrl // Remove raw filepath for security
+          };
+        }
+        if (item.type === 'assignment' && item.resources) {
+          // Create a presigned URL for the file with 1 hour expiration
+          const fileUrl = await getPresignedUrlForGet(`classroom-uploads/${item.resource}`, 3600);
+          
+          // Add the signed URL to the item and remove the raw filepath
+          return {
+            ...item,
+            resources: fileUrl // Remove raw filepath for security
+          };
+        }
+        // Return other items unchanged
+        return item;
+      }));
+      
+      res.json({
+        status: 'success',
+        code: 200,
+        message: 'Stream data fetched successfully.',
+        data: processedResults
       });
+    } catch (error) {
+      next(error);
     }
-    const result = await stream(courseId)
-    res.json({
-      status: 'success',
-      code: 200,
-      message: 'Stream data fetched successfully.',
-      data: result
-    });
-  } catch (error) {
-    next(error);
   }
-}]
+];
 
 // Join a course using its code
 const joinCourseByCode = async (req, res, next) => {
