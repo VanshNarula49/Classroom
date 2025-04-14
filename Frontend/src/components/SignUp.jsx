@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { registerUser } from "../services/authServices";
+import { registerUser } from "../services/AuthServices";
 import { AuthContext } from "../context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from "sonner";
