@@ -124,7 +124,7 @@ const addCourse = async (req, res, next) => {
     //     message: 'Invalid date format for end date. Use YYYY-MM-DD.'
     //   });
     // }
-    // const startDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date().toISOString().split('T')[0];
     // if (new Date(startDate) >= new Date(endDate)) {
     //   return res.status(400).json({
     //     status: 'error',
