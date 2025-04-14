@@ -10,7 +10,11 @@ const {
   stream,
   getCourseByCode
 } = require('../models/Course');
-const { getParticipationForCourse, joinCourse } = require('../models/courseParticipation');
+const { 
+  getParticipationForCourse, 
+  joinCourse,
+  updateParticipantRole 
+} = require('../models/courseParticipation');
 const { generateCourseResource } = require('../utils/resourceGenerators');
 const { getPresignedUrlForGet } = require('../config/minio');
 const validator = require('validator');
@@ -90,11 +94,11 @@ const generateUniqueCourseCode = async () => {
 const addCourse = async (req, res, next) => {
   try {
     const { name, description, endDate } = req.body;
-    if (!name || !description || !endDate) {
+    if (!name) {
       return res.status(400).json({
         status: 'error',
         code: 400,
-        message: 'Name, description, and end date are required.'
+        message: 'Name is required.'
       });
     }
     const trimmedName = name.trim();
@@ -106,28 +110,28 @@ const addCourse = async (req, res, next) => {
         message: 'Course name must be between 3 and 100 characters.'
       });
     }
-    if (!validator.isLength(trimmedDescription, { min: 10, max: 500 })) {
-      return res.status(400).json({
-        status: 'error',
-        code: 400,
-        message: 'Description must be between 10 and 500 characters.'
-      });
-    }
-    if (!validator.isDate(endDate)) {
-      return res.status(400).json({
-        status: 'error',
-        code: 400,
-        message: 'Invalid date format for end date. Use YYYY-MM-DD.'
-      });
-    }
-    const startDate = new Date().toISOString().split('T')[0];
-    if (new Date(startDate) >= new Date(endDate)) {
-      return res.status(400).json({
-        status: 'error',
-        code: 400,
-        message: 'Start date must be before end date.'
-      });
-    }
+    // if (!validator.isLength(trimmedDescription, { min: 10, max: 500 })) {
+    //   return res.status(400).json({
+    //     status: 'error',
+    //     code: 400,
+    //     message: 'Description must be between 10 and 500 characters.'
+    //   });
+    // }
+    // if (!validator.isDate(endDate)) {
+    //   return res.status(400).json({
+    //     status: 'error',
+    //     code: 400,
+    //     message: 'Invalid date format for end date. Use YYYY-MM-DD.'
+    //   });
+    // }
+    // const startDate = new Date().toISOString().split('T')[0];
+    // if (new Date(startDate) >= new Date(endDate)) {
+    //   return res.status(400).json({
+    //     status: 'error',
+    //     code: 400,
+    //     message: 'Start date must be before end date.'
+    //   });
+    // }
     const code = await generateUniqueCourseCode();
     const newCourse = await createCourse(
       req.user.userId,
@@ -317,11 +321,86 @@ const getUserRole = [
   }
 ];
 
+// Change a participant's role in a course
+const changeParticipantRole = [
+  checkAbilityForResource('read', 'Course', coursegen),
+  async (req, res, next) => {
+    try {
+      const courseId = req.params.id;
+      const participantId = req.params.participantId;
+      const { role } = req.body;
+      
+      // Validate inputs
+      if (!courseId || isNaN(courseId) || !participantId || isNaN(participantId) || !role) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Course ID, participant ID, and role are required and must be valid.'
+        });
+      }
+      
+      // Validate the requested role - Allow both full names and abbreviations
+      if (!['Professor', 'TeachingAssistant', 'TA', 'Student'].includes(role)) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Invalid role specified. Valid roles are: Professor, TeachingAssistant/TA, Student'
+        });
+      }
+      
+      // Map front-end role names to database role names
+      const dbRole = role === 'TeachingAssistant' ? 'TA' : role;
+      
+      // The course resource is already attached to req by the CASL middleware
+      const course = req.resource;
+      const userId = req.user.userId;
+      
+      // Only professors of the course can change participant roles
+      if (course.createdby != userId) {
+        return res.status(403).json({
+          status: 'error',
+          code: 403,
+          message: 'Only the course professor can change participant roles.',
+          origin: 'Authorization'
+        });
+      }
+      
+      // Check if the participant is already enrolled in the course
+      const existingParticipation = await getParticipationForCourse(participantId, courseId);
+      if (!existingParticipation) {
+        return res.status(404).json({
+          status: 'error',
+          code: 404,
+          message: 'The specified user is not enrolled in this course.',
+          origin: 'Database'
+        });
+      }
+      
+      // Update the participant's role
+      const updatedParticipation = await updateParticipantRole(participantId, courseId, dbRole);
+      
+      res.json({
+        status: 'success',
+        code: 200,
+        message: `Participant role updated to ${dbRole} successfully.`,
+        data: {
+          courseId: parseInt(courseId),
+          userId: parseInt(participantId),
+          role: updatedParticipation.role
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+];
+
 module.exports = {
   addCourse,
   getCourses,
   getCourse,
   streamCourse,
   joinCourseByCode,
-  getUserRole
+  getUserRole,
+  changeParticipantRole
 };

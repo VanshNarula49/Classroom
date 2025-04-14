@@ -17,7 +17,11 @@ function defineAbilitiesFor(user) {
              (Array.isArray(course.teacherIds) && 
               course.teacherIds.some(id => Number(id) === uid));
     });
-    
+    can('editTA', 'Course', course => {
+      return Number(course.createdby) === uid || 
+             (Array.isArray(course.teacherIds) && 
+              course.teacherIds.some(id => Number(id) === uid));
+    });
     // Teacher can delete a Course if they created it
     can('delete', 'Course', course => Number(course.createdby) === uid);
   }
