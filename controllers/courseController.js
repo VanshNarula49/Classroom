@@ -240,10 +240,26 @@ const getUserRole = [
         });
       }
       
-      // Get the user's participation record for this course
-      const participation = await getParticipationForCourse(userId, courseId);
+      // The course resource is already attached to req by the CASL middleware
+      const course = req.resource;
       
-      if (!participation) {
+      // Determine the user's role based on the course resource
+      let role = null;
+      
+      // Check if user is the course creator (teacher)
+      if (course.createdby == userId) {
+        role = 'Professor';
+      }
+      // Check if user is a TA
+      else if (Array.isArray(course.taIds) && course.taIds.includes(Number(userId))) {
+        role = 'TA';
+      }
+      // Check if user is a student
+      else if (Array.isArray(course.enrolledStudentIds) && course.enrolledStudentIds.includes(Number(userId))) {
+        role = 'Student';
+      }
+      
+      if (!role) {
         return res.status(404).json({
           status: 'error',
           code: 403,
@@ -258,7 +274,7 @@ const getUserRole = [
         data: {
           userId: userId,
           courseId: parseInt(courseId),
-          role: participation.role
+          role: role
         }
       });
     } catch (error) {
