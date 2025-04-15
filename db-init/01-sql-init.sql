@@ -49,7 +49,20 @@ CREATE TABLE "public"."assignment" (
 
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS comment_commentid_seq;
+CREATE OR REPLACE FUNCTION set_createdat()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.createdat IS NULL THEN
+    NEW.createdat := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER assignment_set_createdat
+BEFORE INSERT ON assignment
+FOR EACH ROW
+EXECUTE FUNCTION set_createdat();
 -- Table Definition
 CREATE TABLE "public"."comment" (
     "commentid" int4 NOT NULL DEFAULT nextval('comment_commentid_seq'::regclass),
@@ -111,6 +124,18 @@ CREATE TABLE "public"."grade" (
 
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS material_materialid_seq;
+CREATE OR REPLACE FUNCTION set_gradedat()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.gradedat := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER grade_set_gradedat
+BEFORE INSERT ON grade
+FOR EACH ROW
+EXECUTE FUNCTION set_gradedat();
 
 -- Table Definition
 CREATE TABLE "public"."material" (

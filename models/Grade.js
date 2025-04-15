@@ -28,8 +28,8 @@ const createOrUpdateGrade = async (gradeData) => {
   
   // Create a new grade
   const query = `
-    INSERT INTO grade (submissionid, gradeseq, score, feedback, gradedby, gradedat)
-    VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+    INSERT INTO grade (submissionid, gradeseq, score, feedback, gradedby)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *`;
   
   const values = [submissionId, nextSeq, score, feedback, gradedBy];

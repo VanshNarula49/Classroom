@@ -76,7 +76,7 @@ export function AppSidebar() {
                   )}>
                     <span className={cn(
                       "font-semibold text-lg whitespace-nowrap transition-all duration-300",
-                      isLogoHovered ? "text-primary" : "text-foreground"
+                      isLogoHovered ? "text-primary h-14" : "text-foreground"
                     )}>
                       Campus<span className="text-primary font-bold">Cloud</span>
                     </span>

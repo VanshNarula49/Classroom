@@ -46,11 +46,11 @@ const createAssignment = async (assignmentData) => {
       resources, 
       courseid, 
       createdby, 
-      createdat,
       defaultgrade
-    ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
   `;
+ 
   
   const result = await pool.query(query, [
     title,

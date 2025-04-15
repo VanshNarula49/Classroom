@@ -35,6 +35,8 @@ services:
       POSTGRES_USER: avnadmin
       POSTGRES_PASSWORD: yourpassword
       POSTGRES_DB: myclassroomdb
+      TZ: 'GMT+5:30'
+      PGTZ: 'GMT+5:30'
     ports:
       - "5432:5432"
     volumes:
