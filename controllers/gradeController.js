@@ -83,17 +83,17 @@ const createGrade = [
         });
       }
       
-      const maxPossibleScore = assignment.defaultgrade;
+      const maxPossibleScore = Number(assignment.defaultgrade);
       
       // Validate score range (0 to defaultgrade)
-      if (score < 0) {
+      if (Number(score) < 0) {
         return res.status(400).json({
           status: 'error',
           message: 'Score cannot be less than 0'
         });
       }
       
-      if (score > maxPossibleScore) {
+      if (Number(score) > maxPossibleScore) {
         return res.status(400).json({
           status: 'error',
           message: `Score cannot exceed the maximum possible score (${maxPossibleScore}) for this assignment`
