@@ -59,7 +59,7 @@ export function AppSidebar() {
                   <TooltipTrigger asChild>
                     <button 
                       className={cn(
-                        "flex items-center gap-3 transition-all duration-300 ease-in-out",
+                        "flex items-center gap-3 transition-all duration-300 ease-in-out mr-1",
                         isCollapsed ? "justify-end w-fit" : "w-full"
                       )}
                       onMouseEnter={() => setIsLogoHovered(true)}
