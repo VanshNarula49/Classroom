@@ -61,9 +61,7 @@ export function Header() {
         window.location.reload();
       }
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Failed to create classroom"
-      );
+      toast.error(err.response?.data?.message || "Failed to create classroom");
     }
   };
 
@@ -86,17 +84,23 @@ export function Header() {
         window.location.reload();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "An error occurred while joining.");
+      toast.error(
+        error.response?.data?.message || "An error occurred while joining."
+      );
     }
   };
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between border-b bg-white">
+    <header className="h-16 px-6 flex items-center justify-between border-b bg-white relative">
       <SidebarTrigger />
-      <div className="flex items-center gap-2">
-        <h1 className="font-semibold text-xl">{firstName}'s Classroom</h1>
-      </div>
-      <div className="flex items-center gap-4">
+      {/* Centered Title */}
+      <h1
+        className="font-semibold text-xl absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 m-0 p-0 whitespace-nowrap pointer-events-none select-none"
+        style={{ zIndex: 1 }}
+      >
+        {firstName}'s Classroom
+      </h1>
+      <div className="flex items-center gap-4 ml-auto">
         {/* Join Classroom Dialog */}
         <Dialog open={joinOpen} onOpenChange={setJoinOpen}>
           <DialogTrigger asChild>
