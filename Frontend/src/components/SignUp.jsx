@@ -63,7 +63,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-background to-background/90 animate-fade-in">
       <Toaster position="top-right" richColors />
       <Card className="w-full max-w-md shadow-lg p-6 bg-white rounded-xl">
         <CardHeader>

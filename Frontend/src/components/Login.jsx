@@ -100,15 +100,7 @@ const Login = () => {
         <CardContent className="relative">
           <LoginForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           
-          <div className="mt-6 text-center text-sm text-muted-foreground animate-fade-in delay-5">
-            <span>Don't have an account? </span>
-            <a 
-              href="/signup" 
-              className="text-primary font-medium hover:underline hover:text-primary/80 transition-colors"
-            >
-              Sign up
-            </a>
-          </div>
+         
         </CardContent>
       </Card>
     </div>
