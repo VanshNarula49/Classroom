@@ -3,7 +3,7 @@ const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/clien
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // Read Minio connection settings from environment variables (configured in your Docker Compose)
-const MINIO_ENDPOINT = 'http://192.168.45.101:9000';
+const MINIO_ENDPOINT = 'http://localhost:9000';
 const MINIO_ACCESS_KEY = process.env.MINIO_ROOT_USER || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_ROOT_PASSWORD || 'minioadminpassword';
 const DEFAULT_BUCKET = 'classroom-uploads'; // Default bucket for file uploads
