@@ -47,7 +47,7 @@ export function Header() {
     }
 
     try {
-      const res = await axiosInstance.post(`/api/courses`, {
+      const res = await axiosInstance.post(`/courses`, {
         name: classroomName,
         description: classroomDescription,
       });
@@ -71,7 +71,7 @@ export function Header() {
     }
 
     try {
-      const response = await axiosInstance.post(`/api/courses/join`, {
+      const response = await axiosInstance.post(`/courses/join`, {
         code: classroomCode,
       });
 

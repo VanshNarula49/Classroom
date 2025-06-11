@@ -20,8 +20,8 @@ const CourseAssignment = () => {
     const fetchAssignmentsAndRole = async () => {
       try {
         const [assignmentsRes, roleRes] = await Promise.all([
-          axiosInstance.get(`/api/assignments/${courseId}`),
-          axiosInstance.get(`/api/courses/${courseId}/role`)
+          axiosInstance.get(`/assignments/${courseId}`),
+          axiosInstance.get(`/courses/${courseId}/role`)
         ]);
 
         setAssignments(assignmentsRes.data.data);

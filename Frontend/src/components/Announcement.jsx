@@ -22,7 +22,7 @@ const AnnouncementDetail = () => {
       const fetchAnnouncementDetails = async () => {
         try {
           setLoading(true);
-          const response = await axiosInstance.get(`/api/announcement/details/${announcementId}`);
+          const response = await axiosInstance.get(`/announcement/details/${announcementId}`);
           setAnnouncement(response.data.data);
         } catch (err) {
           toast.error(

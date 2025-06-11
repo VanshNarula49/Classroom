@@ -21,7 +21,7 @@ const MaterialDetail = () => {
       // Fallback in case the page is accessed directly without state
       const fetchMaterialDetails = async () => {
         try {
-          const res = await axiosInstance.get(`/api/material/detail/${materialId}`);
+          const res = await axiosInstance.get(`/material/detail/${materialId}`);
           setMaterial(res.data.data);
         } catch (err) {
           toast.error(

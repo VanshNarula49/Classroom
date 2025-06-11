@@ -42,7 +42,7 @@ const SubmissionDrawer = ({ isOpen, onClose, assignmentTitle, onSubmissionComple
     setIsSubmitting(true);
 
     try {
-      const presignedUrlResponse = await axiosInstance.get('/api/submissions/presigned-url', {
+      const presignedUrlResponse = await axiosInstance.get('/submissions/presigned-url', {
         params: {
           fileExtension,
           assignmentId,
@@ -65,7 +65,7 @@ const SubmissionDrawer = ({ isOpen, onClose, assignmentTitle, onSubmissionComple
         key: key
       };
 
-      await axiosInstance.post('/api/submissions', submissionData);
+      await axiosInstance.post('/submissions', submissionData);
 
       onSubmissionComplete?.({
         submittedDate: new Date().toISOString(),

@@ -88,7 +88,7 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
       });
 
       // 3. Create assignment, include fileExtension
-      await axiosInstance.post(`/api/assignments/${courseId}`, {
+      await axiosInstance.post(`/assignments/${courseId}`, {
         title,
         instructions,
         dueDate,

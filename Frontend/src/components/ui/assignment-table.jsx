@@ -20,7 +20,7 @@ const AssignmentTable = ({ assignments }) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const response = await axiosInstance.get(`/api/courses/${courseId}/role`);
+        const response = await axiosInstance.get(`/courses/${courseId}/role`);
         console.log("API Response:", response);
         setUserRole(response.data.data.role);
       } catch (error) {

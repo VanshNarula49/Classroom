@@ -46,7 +46,7 @@ export function AppSidebar() {
         return;
       }
       
-      const response = await axiosInstance.post(`/api/courses/join`, { code: joinCode });
+      const response = await axiosInstance.post(`/courses/join`, { code: joinCode });
       if (response.data.status === "success") {
         toast.success("Successfully joined the course!");
         navigate("/dashboard");

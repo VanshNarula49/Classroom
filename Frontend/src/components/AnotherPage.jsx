@@ -17,7 +17,7 @@ const CoursePeople = () => {
   useEffect(() => {
     const fetchCoursePeople = async () => {
       try {
-        const res = await axiosInstance.get(`/api/courses/${courseId}`);
+        const res = await axiosInstance.get(`/courses/${courseId}`);
         setPeople(res.data.data);
       } catch (err) {
         toast.error(

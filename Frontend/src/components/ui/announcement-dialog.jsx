@@ -29,7 +29,7 @@ const AnnouncementDialog = ({ isOpen, onClose, onAnnouncementPosted }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await axiosInstance.post(`/api/announcements/${courseId}`, { 
+      const response = await axiosInstance.post(`/announcements/${courseId}`, { 
         title, 
         content
       });

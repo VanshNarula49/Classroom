@@ -12,7 +12,7 @@ export function useUser() {
     } else {
       const fetchUser = async () => {
         try {
-          const res = await axiosInstance.get("/api/users/profile"); // your user API
+          const res = await axiosInstance.get("/users/profile"); // your user API
           localStorage.setItem("user", JSON.stringify(res.data.data.user));
           setUser(res.data);
         } catch (err) {

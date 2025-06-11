@@ -20,8 +20,8 @@ export default function StreamView() {
       try {
         // Fetch stream items and user role in parallel
         const [streamResponse, roleResponse] = await Promise.all([
-          axiosInstance.get(`/api/courses/${courseId}/stream`),
-          axiosInstance.get(`/api/courses/${courseId}/role`)
+          axiosInstance.get(`/courses/${courseId}/stream`),
+          axiosInstance.get(`/courses/${courseId}/role`)
         ]);
 
         if (streamResponse.data.status === "success") {

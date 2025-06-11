@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_CONFIG } from "../config/api";
 
 export const loginUser = async (email, password) => {
-  const response = await axiosInstance.post(`/api/users/login`, { email, password });
+  const response = await axiosInstance.post(`/users/login`, { email, password });
   console.log(response.data)
   return response.data.data.token;
 };
@@ -12,7 +12,7 @@ export const loginUser = async (email, password) => {
 export const setUserSession = async (token) => {
   try {
 
-    const res = await axiosInstance.get("/api/users/profile", {
+    const res = await axiosInstance.get("/users/profile", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -27,5 +27,5 @@ export const setUserSession = async (token) => {
 };
 
 export const registerUser = async (formData) => {
-  await axiosInstance.post(`/api/users/register`, formData);
+  await axiosInstance.post(`/users/register`, formData);
 };

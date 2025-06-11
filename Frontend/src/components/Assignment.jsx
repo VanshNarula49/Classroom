@@ -29,7 +29,7 @@ const Assignment = () => {
 
   const fetchUserRole = async (assignmentId) => {
     try {
-      const res = await axiosInstance.get(`/api/courses/${courseId}/role`);
+      const res = await axiosInstance.get(`/courses/${courseId}/role`);
       if (res.data?.data?.role) {
         setUserRole(res.data.data.role);
       }
@@ -40,7 +40,7 @@ const Assignment = () => {
 
   const fetchSubmission = async () => {
     try {
-      const res = await axiosInstance.get(`/api/submissions/assignment/${assignmentId}`);
+      const res = await axiosInstance.get(`/submissions/assignment/${assignmentId}`);
       if (res.data.status === "success") {
         setSubmission({
           ...res.data.data,
@@ -63,7 +63,7 @@ const Assignment = () => {
 
   const fetchAssignmentDetails = async () => {
     try {
-      const res = await axiosInstance.get(`/api/assignments/${assignmentId}`);
+      const res = await axiosInstance.get(`/assignments/${assignmentId}`);
       if (res.data.status === "success") {
         setAssignment(res.data.data);
         setLoading(false);

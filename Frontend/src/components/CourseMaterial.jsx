@@ -20,8 +20,8 @@ const CourseMaterial = () => {
     const fetchMaterialsAndRole = async () => {
       try {
         const [materialsRes, roleRes] = await Promise.all([
-          axiosInstance.get(`/api/material/${courseId}`),
-          axiosInstance.get(`/api/courses/${courseId}/role`)
+          axiosInstance.get(`/material/${courseId}`),
+          axiosInstance.get(`/courses/${courseId}/role`)
         ]);
 
         setMaterials(materialsRes.data.data);

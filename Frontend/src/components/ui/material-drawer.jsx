@@ -65,7 +65,7 @@ const MaterialUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
         }
       });
 
-      await axiosInstance.post(`/api/material/${courseId}`, {
+      await axiosInstance.post(`/material/${courseId}`, {
         title,
         description,
         type,

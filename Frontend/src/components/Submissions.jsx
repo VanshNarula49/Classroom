@@ -45,7 +45,7 @@ const Submissions = () => {
         
         // Otherwise fetch from API
         const response = await axiosInstance.get(
-          `/api/assignments/single/${assnId}`
+          `/assignments/single/${assnId}`
         );
         
         setAssignment(response.data.data);
@@ -76,7 +76,7 @@ const Submissions = () => {
       
       try {
         const response = await axiosInstance.get(
-          `/api/submissions/assignment/${assnId}/all`
+          `/submissions/assignment/${assnId}/all`
         );
         
         setSubmissions(response.data.data || []);
