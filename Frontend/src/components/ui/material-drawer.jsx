@@ -10,7 +10,6 @@ import axios from 'axios';
 import { toast, Toaster } from "sonner";
 import axiosInstance from '@/utils/axiosInstance';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const MaterialUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
   const { courseId } = useParams();
@@ -52,7 +51,7 @@ const MaterialUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
 
     try {
       const presignedUrlRes = await axiosInstance.get(
-        `${API_URL}/api/material/${courseId}/presigned-url`,
+        `/material/${courseId}/presigned-url`,
         { params: { fileExtension } }
       );
 
@@ -66,7 +65,7 @@ const MaterialUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
         }
       });
 
-      await axiosInstance.post(`${API_URL}/api/material/${courseId}`, {
+      await axiosInstance.post(`/api/material/${courseId}`, {
         title,
         description,
         type,

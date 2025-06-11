@@ -35,7 +35,6 @@ export function AppSidebar() {
   const [joinCode, setJoinCode] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   
   // Add animation states
   const [isMenuHovered, setIsMenuHovered] = useState(false);
@@ -47,7 +46,7 @@ export function AppSidebar() {
         return;
       }
       
-      const response = await axiosInstance.post(`${API_URL}/api/courses/join`, { code: joinCode });
+      const response = await axiosInstance.post(`/api/courses/join`, { code: joinCode });
       if (response.data.status === "success") {
         toast.success("Successfully joined the course!");
         navigate("/dashboard");

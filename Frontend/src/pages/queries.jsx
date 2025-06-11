@@ -4,7 +4,6 @@ import axios from "axios";
 import { toast } from "sonner";
 
 // Define API constants
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
@@ -40,14 +39,14 @@ export default function App() {
 
       switch (queryNumber) {
         case 1:
-          response = await axiosInstance.post(`${API_URL}/api/queries/1`, {
+          response = await axiosInstance.post(`/api/queries/1`, {
             courseId: queryParams.courseId,
           });
           setQueryResults(response.data.data);
           break;
 
         case 2:
-          response = await axiosInstance.post(`${API_URL}/api/queries/2`, {
+          response = await axiosInstance.post(`/api/queries/2`, {
             courseId: queryParams.courseId,
           });
           setQueryResults(response.data.data);
@@ -57,54 +56,54 @@ export default function App() {
           break;
 
         case 3:
-          response = await axiosInstance.post(`${API_URL}/api/queries/3`, {
+          response = await axiosInstance.post(`/api/queries/3`, {
             assignmentId: queryParams.assignmentId,
           });
           setQueryResults(response.data.data);
           break;
 
         case 4:
-          response = await axiosInstance.post(`${API_URL}/api/queries/4`, {
+          response = await axiosInstance.post(`/api/queries/4`, {
             courseId: queryParams.courseId,
           });
           setQueryResults(response.data.data);
           break;
 
         case 5:
-          response = await axiosInstance.post(`${API_URL}/api/queries/5`, {
+          response = await axiosInstance.post(`/api/queries/5`, {
             courseId: queryParams.courseId || undefined,
           });
           setQueryResults(response.data.data);
           break;
 
         case 6:
-          response = await axiosInstance.post(`${API_URL}/api/queries/6`, {
+          response = await axiosInstance.post(`/api/queries/6`, {
             userId: queryParams.userid || undefined,
           });
           setQueryResults(response.data.data);
           break;
 
         case 7:
-          response = await axiosInstance.post(`${API_URL}/api/queries/7`, {
+          response = await axiosInstance.post(`/api/queries/7`, {
             courseId: queryParams.courseId || undefined,
           });
           setQueryResults(response.data.data);
           break;
 
         case 8:
-          response = await axiosInstance.post(`${API_URL}/api/queries/8`, {
+          response = await axiosInstance.post(`/api/queries/8`, {
             userId: queryParams.userid || undefined,
           });
           setQueryResults(response.data.data);
           break;
 
         case 9:
-          response = await axiosInstance.post(`${API_URL}/api/queries/9`);
+          response = await axiosInstance.post(`/api/queries/9`);
           setQueryResults(response.data.data);
           break;
 
         case 10:
-          response = await axiosInstance.post(`${API_URL}/api/queries/10`);
+          response = await axiosInstance.post(`/api/queries/10`);
           setQueryResults(response.data.data);
           break;
 

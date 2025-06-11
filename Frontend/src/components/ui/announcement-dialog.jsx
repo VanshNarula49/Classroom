@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const AnnouncementDialog = ({ isOpen, onClose, onAnnouncementPosted }) => {
   const { courseId } = useParams();
@@ -30,7 +29,7 @@ const AnnouncementDialog = ({ isOpen, onClose, onAnnouncementPosted }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await axiosInstance.post(`${API_URL}/api/announcements/${courseId}`, { 
+      const response = await axiosInstance.post(`/api/announcements/${courseId}`, { 
         title, 
         content
       });

@@ -1,10 +1,9 @@
 import axiosInstance from "@/utils/axiosInstance";
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL|| "http://localhost:3000";
+import { API_CONFIG } from "../config/api";
 
 export const loginUser = async (email, password) => {
-  const response = await axios.post(`${API_URL}/api/users/login`, { email, password });
+  const response = await axiosInstance.post(`/api/users/login`, { email, password });
   console.log(response.data)
   return response.data.data.token;
 };
@@ -28,5 +27,5 @@ export const setUserSession = async (token) => {
 };
 
 export const registerUser = async (formData) => {
-  await axios.post(`${API_URL}/api/users/register`, formData);
+  await axiosInstance.post(`/api/users/register`, formData);
 };

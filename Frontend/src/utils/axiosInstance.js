@@ -1,8 +1,9 @@
 import axios from "axios";
+import { API_CONFIG } from "../config/api";
 
 // Create an axios instance with your base API URL.
 const axiosInstance = axios.create({
-  baseURL:import.meta.env.VITE_API_URL|| "http://localhost:3000" // Change to your API URL
+  baseURL: API_CONFIG.apiURL // Use the API configuration
 });
 
 // Request Interceptor: Attach token from localStorage (or another storage mechanism)

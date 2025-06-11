@@ -1,18 +1,17 @@
-import axiosInstance from "@/utils/axiosInstance";
-
-const API_URL = import.meta.env.VITE_API_URL ||  "http://localhost:3000";
+import axiosInstance from "../utils/axiosInstance";
+import { API_CONFIG } from "../config/api";
 
 export const getUserClasses = async() => {
-    const courses = await axiosInstance.get(`${API_URL}/api/courses`);
+    const courses = await axiosInstance.get(`/api/courses`);
     return courses.data.data.courses;
 };
 
 export const getClass = async(id) => {
-    const userClass = await axiosInstance.get(`${API_URL}/api/courses/${id}`);
+    const userClass = await axiosInstance.get(`/api/courses/${id}`);
     return userClass.data.data;
 }
 
 export const getMaterials = async(id) => {
-    const userClass = await axiosInstance.get(`${API_URL}/api/courses/${id}`);
+    const userClass = await axiosInstance.get(`/api/courses/${id}`);
     return userClass.data.data;
 }

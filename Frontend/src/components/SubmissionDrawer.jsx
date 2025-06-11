@@ -9,7 +9,6 @@ import { Upload, X, FileText } from "lucide-react";
 import axios from 'axios';
 import { toast, Toaster } from "sonner";
 import axiosInstance from '@/utils/axiosInstance';
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const SubmissionDrawer = ({ isOpen, onClose, assignmentTitle, onSubmissionComplete }) => {
   const { courseId, assignmentId } = useParams();
@@ -43,7 +42,7 @@ const SubmissionDrawer = ({ isOpen, onClose, assignmentTitle, onSubmissionComple
     setIsSubmitting(true);
 
     try {
-      const presignedUrlResponse = await axiosInstance.get(`${API_URL}/api/submissions/presigned-url`, {
+      const presignedUrlResponse = await axiosInstance.get('/api/submissions/presigned-url', {
         params: {
           fileExtension,
           assignmentId,

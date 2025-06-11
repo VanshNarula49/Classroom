@@ -7,7 +7,6 @@ import AssignmentTable from "./ui/assignment-table";
 import AssignmentUploadDrawer from "./ui/assignnment-drawer";
 import { Button } from "@/components/ui/button";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const CourseAssignment = () => {
   const { courseId } = useParams();
@@ -21,8 +20,8 @@ const CourseAssignment = () => {
     const fetchAssignmentsAndRole = async () => {
       try {
         const [assignmentsRes, roleRes] = await Promise.all([
-          axiosInstance.get(`${API_URL}/api/assignments/${courseId}`),
-          axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`)
+          axiosInstance.get(`/api/assignments/${courseId}`),
+          axiosInstance.get(`/api/courses/${courseId}/role`)
         ]);
 
         setAssignments(assignmentsRes.data.data);

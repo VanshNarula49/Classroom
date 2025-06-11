@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import { toast, Toaster } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +43,7 @@ const CoursePeople = () => {
       const fetchData = async () => {
         try {
           // Fetch course details
-          const courseRes = await axiosInstance.get(`${API_URL}/api/courses/${courseId}`);
+          const courseRes = await axiosInstance.get(`/api/courses/${courseId}`);
           
           // Transform course data
           const courseData = courseRes.data.data;
@@ -63,7 +62,7 @@ const CoursePeople = () => {
           setPeople(transformedData);
           
           // Fetch user role
-          const roleRes = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`);
+          const roleRes = await axiosInstance.get(`/api/courses/${courseId}/role`);
           setUserRole(roleRes.data.data.role);
         } catch (err) {
           toast.error(
@@ -91,14 +90,14 @@ const CoursePeople = () => {
         const apiRoleName = newRole === "TeachingAssistant" ? "TA" : newRole;
         
         // Make API call to update role
-        await axiosInstance.put(`${API_URL}/api/courses/${courseId}/participant/${userId}/role`, {
+        await axiosInstance.put(`/api/courses/${courseId}/participant/${userId}/role`, {
           role: apiRoleName
         });
         
         toast.success(`Updated user role to ${newRole === "TeachingAssistant" ? "Teaching Assistant" : newRole}`);
         
         // Reload data instead of manually updating state
-        const courseRes = await axiosInstance.get(`${API_URL}/api/courses/${courseId}`);
+        const courseRes = await axiosInstance.get(`/api/courses/${courseId}`);
         
         // Transform and sort course data
         const courseData = courseRes.data.data;

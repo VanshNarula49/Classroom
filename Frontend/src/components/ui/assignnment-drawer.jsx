@@ -20,7 +20,6 @@ import axiosInstance from '@/utils/axiosInstance';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
   const { courseId } = useParams();
@@ -73,7 +72,7 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
     try {
       // 1. Get presigned URL from new endpoint
       const presignedRes = await axiosInstance.get(
-        `${API_URL}/api/assignments/${courseId}/presigned-url`,
+        `/assignments/${courseId}/presigned-url`,
         { params: { fileExtension } }
       );
 
@@ -89,7 +88,7 @@ const AssignmentUploadDrawer = ({ isOpen, onClose, onUploadComplete }) => {
       });
 
       // 3. Create assignment, include fileExtension
-      await axiosInstance.post(`${API_URL}/api/assignments/${courseId}`, {
+      await axiosInstance.post(`/api/assignments/${courseId}`, {
         title,
         instructions,
         dueDate,

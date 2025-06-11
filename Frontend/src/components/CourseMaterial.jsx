@@ -7,7 +7,6 @@ import MaterialTable from "./ui/materials-table";
 import { Button } from "@/components/ui/button";
 import MaterialUploadDrawer from "./ui/material-drawer";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const CourseMaterial = () => {
   const { courseId } = useParams();
@@ -21,8 +20,8 @@ const CourseMaterial = () => {
     const fetchMaterialsAndRole = async () => {
       try {
         const [materialsRes, roleRes] = await Promise.all([
-          axiosInstance.get(`${API_URL}/api/material/${courseId}`),
-          axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`)
+          axiosInstance.get(`/api/material/${courseId}`),
+          axiosInstance.get(`/api/courses/${courseId}/role`)
         ]);
 
         setMaterials(materialsRes.data.data);

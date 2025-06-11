@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import { toast, Toaster } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +17,7 @@ const CoursePeople = () => {
   useEffect(() => {
     const fetchCoursePeople = async () => {
       try {
-        const res = await axiosInstance.get(`${API_URL}/api/courses/${courseId}`);
+        const res = await axiosInstance.get(`/api/courses/${courseId}`);
         setPeople(res.data.data);
       } catch (err) {
         toast.error(

@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
 import AnnouncementDialog from "./ui/announcement-dialog";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 export default function StreamView() {
   const { courseId } = useParams();
   const [streamItems, setStreamItems] = useState([]);
@@ -22,8 +20,8 @@ export default function StreamView() {
       try {
         // Fetch stream items and user role in parallel
         const [streamResponse, roleResponse] = await Promise.all([
-          axiosInstance.get(`${API_URL}/api/courses/${courseId}/stream`),
-          axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`)
+          axiosInstance.get(`/api/courses/${courseId}/stream`),
+          axiosInstance.get(`/api/courses/${courseId}/role`)
         ]);
 
         if (streamResponse.data.status === "success") {

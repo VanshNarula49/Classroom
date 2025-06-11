@@ -14,7 +14,6 @@ import { InfoIcon, FileIcon, CheckIcon, ClockIcon, CalendarIcon, UsersIcon, User
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster, toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const Submissions = () => {
   const { assignmentId } = useParams();
@@ -46,7 +45,7 @@ const Submissions = () => {
         
         // Otherwise fetch from API
         const response = await axiosInstance.get(
-          `${API_URL}/api/assignments/single/${assnId}`
+          `/assignments/single/${assnId}`
         );
         
         setAssignment(response.data.data);
@@ -77,7 +76,7 @@ const Submissions = () => {
       
       try {
         const response = await axiosInstance.get(
-          `${API_URL}/api/submissions/assignment/${assnId}/all`
+          `/submissions/assignment/${assnId}/all`
         );
         
         setSubmissions(response.data.data || []);
@@ -132,7 +131,7 @@ const Submissions = () => {
       };
 
       const response = await axiosInstance.post(
-        `${API_URL}/api/grades`,
+        `/grades`,
         payload
       );
 
@@ -173,7 +172,7 @@ const Submissions = () => {
       setGradeReleased(newState);
       
       const response = await axiosInstance.put(
-        `${API_URL}/api/assignments/${assnId}/toggle-grade-release`
+        `/assignments/${assnId}/toggle-grade-release`
       );
       
       // Show success toast

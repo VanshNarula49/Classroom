@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  frontend:
+    build:
+      context: ../Frontend  # Path to your frontend directory
+      dockerfile: Dockerfile
+    container_name: classroom-frontend
+    environment:
+      - VITE_API_BASE_URL=http://localhost:80
+      - VITE_API_URL=http://localhost:80
+    ports:
+      - "80:80"  # Run the frontend on port 80
+    depends_on:
+      - api
+
   api:
     build:
       context: ..                   # Use the project root as build context
@@ -16,13 +29,14 @@ services:
       
       # MinIO connection
       - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_EXTERNAL_ENDPOINT=http://localhost/minio
       - MINIO_CONSOLE_ENDPOINT=http://minio:9090
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword
       
     
     ports:
-      - "3000:3000"
+      - "3001:3000"  # Change to avoid port conflict
     depends_on:
       - db
       - minio
@@ -77,17 +91,14 @@ services:
       # Set the bucket to private
       /usr/bin/mc policy set private myminio/classroom-uploads;
       
-      # Create CORS configuration to allow all domains for GET requests
-       echo '{\"CORSRules\":[{\"AllowedOrigins\":[\"*\"],\"AllowedMethods\":[\"GET\"],\"AllowedHeaders\":[\"*\"],\"ExposeHeaders\":[\"ETag\"],\"MaxAgeSeconds\":3000}]}' > /tmp/cors.json;
+      # Create CORS configuration to allow all domains for GET, PUT, and POST requests
+       echo '{\"CORSRules\":[{\"AllowedOrigins\":[\"*\"],\"AllowedMethods\":[\"GET\",\"PUT\",\"POST\"],\"AllowedHeaders\":[\"*\"],\"ExposeHeaders\":[\"ETag\"],\"MaxAgeSeconds\":3000}]}' > /tmp/cors.json;
       
       # Apply CORS configuration to the bucket
       /usr/bin/mc cors set myminio/classroom-uploads /tmp/cors.json || echo 'CORS setup attempted, continuing regardless of outcome';
       
       exit 0;
       "
-
-
-
 
 volumes:
   minio_data:

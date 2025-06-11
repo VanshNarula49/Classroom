@@ -13,5 +13,9 @@ export default defineConfig({
   server: {
     host: true, // or use '0.0.0.0'
     port: 5173, // optional, change if needed
+  },
+  define: {
+    'process.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || 'http://localhost:80'),
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:80/api')
   }
 })

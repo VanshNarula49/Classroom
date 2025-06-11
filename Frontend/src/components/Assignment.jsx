@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const Assignment = () => {
   const { assignmentId } = useParams();
@@ -30,7 +29,7 @@ const Assignment = () => {
 
   const fetchUserRole = async (assignmentId) => {
     try {
-      const res = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`);
+      const res = await axiosInstance.get(`/api/courses/${courseId}/role`);
       if (res.data?.data?.role) {
         setUserRole(res.data.data.role);
       }
@@ -41,7 +40,7 @@ const Assignment = () => {
 
   const fetchSubmission = async () => {
     try {
-      const res = await axiosInstance.get(`${API_URL}/api/submissions/assignment/${assignmentId}`);
+      const res = await axiosInstance.get(`/api/submissions/assignment/${assignmentId}`);
       if (res.data.status === "success") {
         setSubmission({
           ...res.data.data,
@@ -64,7 +63,7 @@ const Assignment = () => {
 
   const fetchAssignmentDetails = async () => {
     try {
-      const res = await axiosInstance.get(`${API_URL}/api/assignments/${assignmentId}`);
+      const res = await axiosInstance.get(`/api/assignments/${assignmentId}`);
       if (res.data.status === "success") {
         setAssignment(res.data.data);
         setLoading(false);

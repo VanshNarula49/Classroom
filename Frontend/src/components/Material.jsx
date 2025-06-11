@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const MaterialDetail = () => {
   const { materialId } = useParams();
@@ -22,7 +21,7 @@ const MaterialDetail = () => {
       // Fallback in case the page is accessed directly without state
       const fetchMaterialDetails = async () => {
         try {
-          const res = await axiosInstance.get(`${API_URL}/api/material/detail/${materialId}`);
+          const res = await axiosInstance.get(`/api/material/detail/${materialId}`);
           setMaterial(res.data.data);
         } catch (err) {
           toast.error(

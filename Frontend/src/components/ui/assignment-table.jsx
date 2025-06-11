@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const AssignmentTable = ({ assignments }) => {
   const [userRole, setUserRole] = useState(null);
@@ -21,7 +20,7 @@ const AssignmentTable = ({ assignments }) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const response = await axiosInstance.get(`${API_URL}/api/courses/${courseId}/role`);
+        const response = await axiosInstance.get(`/api/courses/${courseId}/role`);
         console.log("API Response:", response);
         setUserRole(response.data.data.role);
       } catch (error) {

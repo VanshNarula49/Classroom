@@ -39,7 +39,6 @@ export function Header() {
   const [classroomDescription, setClassroomDescription] = useState("");
   const [classroomCode, setClassroomCode] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const handleCreateClassroom = async () => {
     if (!classroomName.trim()) {
@@ -48,7 +47,7 @@ export function Header() {
     }
 
     try {
-      const res = await axiosInstance.post(`${API_URL}/api/courses`, {
+      const res = await axiosInstance.post(`/api/courses`, {
         name: classroomName,
         description: classroomDescription,
       });
@@ -72,7 +71,7 @@ export function Header() {
     }
 
     try {
-      const response = await axiosInstance.post(`${API_URL}/api/courses/join`, {
+      const response = await axiosInstance.post(`/api/courses/join`, {
         code: classroomCode,
       });
 

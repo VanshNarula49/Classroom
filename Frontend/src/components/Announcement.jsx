@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { toast, Toaster } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const AnnouncementDetail = () => {
   const { announcementId } = useParams();
@@ -23,7 +22,7 @@ const AnnouncementDetail = () => {
       const fetchAnnouncementDetails = async () => {
         try {
           setLoading(true);
-          const response = await axiosInstance.get(`${API_URL}/api/announcement/details/${announcementId}`);
+          const response = await axiosInstance.get(`/api/announcement/details/${announcementId}`);
           setAnnouncement(response.data.data);
         } catch (err) {
           toast.error(
