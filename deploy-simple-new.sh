@@ -36,18 +36,22 @@ docker system prune -f || true
 docker-compose -f docker/docker-compose.simple.yml down --remove-orphans || true
 print_success "Cleanup completed"
 
-# Step 2: Build frontend
-print_status "Step 2: Building frontend..."
+# Step 2: Build frontend with Docker
+print_status "Step 2: Building frontend with Docker..."
 if [ -d "Frontend" ]; then
-    cd Frontend
-    if [ ! -d "node_modules" ]; then
-        print_status "Installing frontend dependencies..."
-        npm install
+    print_status "Building frontend using Docker..."
+    docker run --rm \
+        -v "$(pwd)/Frontend:/app" \
+        -w /app \
+        node:18-alpine \
+        sh -c "npm install && npm run build"
+    
+    if [ -d "Frontend/dist" ]; then
+        print_success "Frontend built successfully"
+    else
+        print_error "Frontend build failed - dist folder not found"
+        exit 1
     fi
-    print_status "Building frontend for production..."
-    npm run build
-    cd ..
-    print_success "Frontend built successfully"
 else
     print_error "Frontend directory not found!"
     exit 1
