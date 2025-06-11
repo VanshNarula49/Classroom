@@ -274,6 +274,13 @@ server {
 }
 EOL
 
+# Ensure Docker network exists
+print_status "Creating Docker network if it doesn't exist..."
+docker network create docker_default 2>/dev/null || true
+
+# Ensure certbot directory exists
+sudo mkdir -p /var/www/certbot
+
 # Start nginx with the HTTP-only config
 print_status "Starting Nginx container for challenge..."
 docker run -d \
@@ -282,16 +289,46 @@ docker run -d \
     -p 80:80 \
     -v "$HTTP_NGINX_CONF:/etc/nginx/conf.d/default.conf:ro" \
     -v /var/www/certbot:/var/www/certbot:ro \
-    nginx:latest || {
-    print_error "Failed to start Nginx container. Check if port 80 is already in use."
-    exit 1
-}
+    nginx:latest
+
+# Check if container started successfully
+if ! docker ps | grep -q temp-nginx-challenge; then
+    print_error "Failed to start Nginx container."
+    print_status "Checking what might be wrong..."
+    
+    # Show more detailed error
+    docker logs temp-nginx-challenge 2>/dev/null || true
+    
+    print_status "Trying alternative approach without custom network..."
+    docker rm temp-nginx-challenge 2>/dev/null || true
+    
+    # Try without custom network
+    docker run -d \
+        --name temp-nginx-challenge \
+        -p 80:80 \
+        -v "$HTTP_NGINX_CONF:/etc/nginx/conf.d/default.conf:ro" \
+        -v /var/www/certbot:/var/www/certbot:ro \
+        nginx:latest || {
+        print_error "Still failed to start Nginx. Skipping SSL certificate step."
+        echo "You can deploy without SSL and add it later."
+        SKIP_SSL=true
+    }
+fi
 
 sleep 5
-print_status "Challenge Nginx started successfully."
+if docker ps | grep -q temp-nginx-challenge; then
+    print_status "Challenge Nginx started successfully."
+else
+    print_warning "Nginx container may not have started properly."
+fi
 
 # 10. Obtain SSL certificate
 print_step "Step 10: Obtaining SSL certificate..."
+
+# Skip SSL if nginx failed to start
+if [ "$SKIP_SSL" = "true" ]; then
+    print_warning "Skipping SSL certificate due to nginx startup issues."
+else
 
 # Check DNS first
 print_status "Checking DNS resolution for $DOMAIN_NAME..."
@@ -338,6 +375,7 @@ else
             exit 1
         fi
     }
+fi  # End of SSL skip check
 fi
 
 # 11. Stop challenge nginx
