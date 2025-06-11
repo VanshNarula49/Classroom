@@ -81,12 +81,12 @@ configure_environment() {
     prompt_for_input "Enter your domain name (e.g., example.com)" DOMAIN_NAME "${DOMAIN_NAME:-}"
     prompt_for_input "Enter your email for Let's Encrypt SSL" LETSENCRYPT_EMAIL "${LETSENCRYPT_EMAIL:-}"
 
-    prompt_for_input "Enter Database Name" DB_NAME "${DB_NAME:-myclassroomdb_prod}"
-    prompt_for_input "Enter Database User" DB_USER "${DB_USER:-classroom_user}"
-    prompt_for_input "Enter Database Password" DB_PASSWORD "${DB_PASSWORD:-$(openssl rand -hex 12)}"
+    prompt_for_input "Enter Database Name" DB_NAME "${DB_NAME:-myclassroomdb}"
+    prompt_for_input "Enter Database User" DB_USER "${DB_USER:-avnadmin}"
+    prompt_for_input "Enter Database Password" DB_PASSWORD "${DB_PASSWORD:-yourpassword}"
 
-    prompt_for_input "Enter MinIO Root User" MINIO_ROOT_USER "${MINIO_ROOT_USER:-minioadmin_prod}"
-    prompt_for_input "Enter MinIO Root Password" MINIO_ROOT_PASSWORD "${MINIO_ROOT_PASSWORD:-$(openssl rand -hex 12)}"
+    prompt_for_input "Enter MinIO Root User" MINIO_ROOT_USER "${MINIO_ROOT_USER:-minioadmin}"
+    prompt_for_input "Enter MinIO Root Password" MINIO_ROOT_PASSWORD "${MINIO_ROOT_PASSWORD:-minioadminpassword}"
 
     prompt_for_input "Enter a strong JWT Secret for the API" JWT_SECRET "${JWT_SECRET:-$(openssl rand -hex 32)}"
 
