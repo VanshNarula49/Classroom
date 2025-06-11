@@ -136,9 +136,6 @@ if [ ! -f "$CERTS_OBTAINED_FLAG" ]; then
     
     # Restore the original SSL nginx config
     mv docker/nginx-simple/nginx.conf.ssl-backup docker/nginx-simple/nginx.conf
-
-    print_status "Creating flag file: $CERTS_OBTAINED_FLAG"
-    touch "$CERTS_OBTAINED_FLAG"
 else
     print_status "Step 3: SSL certificates flag found ($CERTS_OBTAINED_FLAG). Skipping initial acquisition."
     print_status "Certbot container (if running) will handle renewals."
