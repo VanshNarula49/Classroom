@@ -58,17 +58,29 @@ if [ ! -f "$CERTS_OBTAINED_FLAG" ]; then
     print_status "Step 3: Initial SSL setup for $DOMAIN_NAME..."
     print_warning "IMPORTANT: Ensure DNS for $DOMAIN_NAME points to this server's IP and ports 80/443 are open."
 
-    print_status "Starting Nginx in HTTP-only mode for ACME challenge..."
-    # Use the override file to start Nginx with only HTTP configuration
-    # Ensure any previous Nginx is down
-    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" -f "$NGINX_HTTP_ONLY_COMPOSE_OVERRIDE" down --remove-orphans > /dev/null 2>&1 || true
-    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" -f "$NGINX_HTTP_ONLY_COMPOSE_OVERRIDE" up -d nginx
+    # First, clean up any existing containers and volumes that might have bad certs
+    print_status "Cleaning up any existing containers and volumes..."
+    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" down --remove-orphans --volumes || true
+    
+    # Back up the original nginx config and replace it temporarily with HTTP-only version
+    print_status "Temporarily replacing Nginx config with HTTP-only version..."
+    mv docker/nginx-simple/nginx.conf docker/nginx-simple/nginx.conf.ssl-backup
+    cp docker/nginx-simple/nginx-http-only.conf docker/nginx-simple/nginx.conf
 
-    print_status "Waiting a few seconds for HTTP-only Nginx to be ready..."
+    print_status "Starting Nginx in HTTP-only mode for ACME challenge..."
+    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" up -d nginx
+
+    print_status "Waiting for HTTP-only Nginx to be ready..."
     sleep 15
 
+    # Test that HTTP is working
+    if curl -f "http://$DOMAIN_NAME" > /dev/null 2>&1; then
+        print_success "HTTP endpoint is accessible."
+    else
+        print_warning "HTTP endpoint may not be accessible. Continuing anyway..."
+    fi
+
     print_status "Requesting Let's Encrypt certificate for $DOMAIN_NAME..."
-    # Certbot command remains the same, it will use the Nginx started above
     docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" run --rm certbot certonly \
       --webroot -w /var/www/certbot \
       --email "$LETSENCRYPT_EMAIL" \
@@ -76,13 +88,16 @@ if [ ! -f "$CERTS_OBTAINED_FLAG" ]; then
       --agree-tos \
       --no-eff-email \
       --non-interactive \
-      --force-renewal # Use force-renewal for initial setup
+      --force-renewal
 
     print_success "Certificate acquisition process finished."
     
-    print_status "Stopping HTTP-only Nginx..."
-    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" -f "$NGINX_HTTP_ONLY_COMPOSE_OVERRIDE" stop nginx
-    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" -f "$NGINX_HTTP_ONLY_COMPOSE_OVERRIDE" rm -f nginx
+    print_status "Stopping HTTP-only Nginx and restoring SSL config..."
+    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" stop nginx
+    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" rm -f nginx
+    
+    # Restore the original SSL nginx config
+    mv docker/nginx-simple/nginx.conf.ssl-backup docker/nginx-simple/nginx.conf
 
     print_status "Creating flag file: $CERTS_OBTAINED_FLAG"
     touch "$CERTS_OBTAINED_FLAG"
