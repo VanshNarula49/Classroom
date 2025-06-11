@@ -3,15 +3,15 @@ const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/clien
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // Read Minio connection settings from environment variables (configured in your Docker Compose)
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
-const MINIO_EXTERNAL_ENDPOINT = process.env.MINIO_EXTERNAL_ENDPOINT || '/minio'; // Public URL via Nginx
+const MINIO_INTERNAL_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
+const MINIO_PUBLIC_DOMAIN = process.env.MINIO_PUBLIC_DOMAIN || 'http://localhost:9000';
 const MINIO_ACCESS_KEY = process.env.MINIO_ROOT_USER || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_ROOT_PASSWORD || 'minioadminpassword';
 const DEFAULT_BUCKET = 'classroom-uploads'; // Default bucket for file uploads
 
-// S3 client for internal server-to-server communication
+// S3 client for internal server-to-server communication (backend to MinIO)
 const s3Client = new S3Client({
-  endpoint: MINIO_ENDPOINT, // Use internal endpoint for server communication
+  endpoint: MINIO_INTERNAL_ENDPOINT, // Use internal endpoint for server communication
   region: 'us-east-1',
   credentials: {
     accessKeyId: MINIO_ACCESS_KEY,
@@ -20,14 +20,9 @@ const s3Client = new S3Client({
   forcePathStyle: true,
 });
 
-// For presigned URLs, we need to use the external endpoint that clients can access
-const externalHost = process.env.DOMAIN_NAME ? `https://${process.env.DOMAIN_NAME}` : 'http://localhost';
-// Construct the full external endpoint for signing, including the /minio path
-const signingEndpoint = externalHost + MINIO_EXTERNAL_ENDPOINT;
-
-// S3 client specifically for generating presigned URLs.
+// S3 client for generating presigned URLs (client accessible URLs)
 const s3ClientForSigning = new S3Client({
-  endpoint: signingEndpoint, // Use the external host + /minio path
+  endpoint: MINIO_PUBLIC_DOMAIN, // Use public domain for presigned URLs
   region: 'us-east-1',
   credentials: {
     accessKeyId: MINIO_ACCESS_KEY,
@@ -87,6 +82,7 @@ async function getPresignedUrlForUpload(combined, expiresIn = 3600) {
 }
 
 module.exports = {
+  s3Client,
   getPresignedUrlForGet,
   getPresignedUrlForUpload,
 };

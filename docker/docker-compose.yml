@@ -30,7 +30,7 @@ services:
       
       # MinIO connection
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_EXTERNAL_ENDPOINT=https://classroom.set4.me/minio
+      - MINIO_PUBLIC_DOMAIN=https://classroom.set4.me/minio
       - MINIO_CONSOLE_ENDPOINT=http://minio:9090
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword

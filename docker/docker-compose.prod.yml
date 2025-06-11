@@ -57,7 +57,7 @@ services:
       - DB_USER=avnadmin
       - DB_PASSWORD=yourpassword
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_EXTERNAL_ENDPOINT=/minio
+      - MINIO_PUBLIC_DOMAIN=https://classroom.set4.me/minio
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword
       - JWT_SECRET=your-production-jwt-secret-change-this

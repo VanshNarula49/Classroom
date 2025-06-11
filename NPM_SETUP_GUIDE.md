@@ -14,6 +14,7 @@
 1. Click **"Proxy Hosts"** in the sidebar
 2. Click **"Add Proxy Host"** button
 3. Fill in the **Details** tab:
+
    - **Domain Names**: `classroom.set4.me` (your actual domain)
    - **Scheme**: `http`
    - **Forward Hostname/IP**: `frontend`
@@ -23,6 +24,7 @@
    - ✅ **Websockets Support**: Enable
 
 4. Go to **SSL** tab:
+
    - ✅ **SSL Certificate**: Request a new SSL Certificate
    - ✅ **Force SSL**: Enable
    - ✅ **HTTP/2 Support**: Enable
@@ -71,6 +73,7 @@
 ## Step 5: Add MinIO Console Path (Optional)
 
 1. Add another **Custom Location**:
+
    - **Location**: `/minio-console/`
    - **Scheme**: `http`
    - **Forward Hostname/IP**: `minio`
@@ -87,7 +90,7 @@
      proxy_set_header Connection "upgrade";
      ```
 
-6. Click **Save**
+2. Click **Save**
 
 ## Final URLs
 
@@ -101,15 +104,18 @@ After setup, your application will be available at:
 ## Troubleshooting
 
 ### If SSL fails:
+
 - Make sure your domain points to your server IP
 - Check that ports 80 and 443 are open
 - Wait a few minutes for DNS propagation
 
 ### If services don't load:
+
 - Check container status: `docker-compose -f docker/docker-compose.npm.yml ps`
 - Check logs: `docker-compose -f docker/docker-compose.npm.yml logs [service-name]`
 
 ### Test individual services:
+
 - Frontend: `http://your-server-ip` (through NPM)
 - API direct: `http://your-server-ip:3000` (won't work, it's internal only)
 - NPM admin: `http://your-server-ip:81`
