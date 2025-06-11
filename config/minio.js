@@ -4,10 +4,14 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // Read Minio connection settings from environment variables (configured in your Docker Compose)
 const MINIO_INTERNAL_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
-const MINIO_PUBLIC_DOMAIN = process.env.MINIO_PUBLIC_DOMAIN || 'http://localhost:9000';
+const MINIO_PUBLIC_DOMAIN = process.env.MINIO_PUBLIC_DOMAIN || 'https://minio.classroom.set4.me';
 const MINIO_ACCESS_KEY = process.env.MINIO_ROOT_USER || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_ROOT_PASSWORD || 'minioadminpassword';
 const DEFAULT_BUCKET = 'classroom-uploads'; // Default bucket for file uploads
+
+console.log('MinIO Configuration:');
+console.log('MINIO_INTERNAL_ENDPOINT:', MINIO_INTERNAL_ENDPOINT);
+console.log('MINIO_PUBLIC_DOMAIN:', MINIO_PUBLIC_DOMAIN);
 
 // S3 client for internal server-to-server communication (backend to MinIO)
 const s3Client = new S3Client({
@@ -49,12 +53,15 @@ async function getPresignedUrlForGet(combined, expiresIn = 3600) {
     const { bucket, key } = parseBucketAndKey(combined);
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
 
+    console.log(`Generating GET URL for bucket: ${bucket}, key: ${key}`);
+    console.log(`Using endpoint: ${MINIO_PUBLIC_DOMAIN}`);
+    
     // Generate presigned URL using the signing client
     // The URL should now be correctly formed by the SDK due to the endpoint configuration
     const signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
     
-    // Removed manual URL transformation, as the SDK should handle it with the correct endpoint.
-
+    console.log(`Generated URL: ${signedUrl}`);
+    
     return signedUrl;
   } catch (err) {
     console.error('Error generating GET presigned URL:', err);
@@ -68,11 +75,14 @@ async function getPresignedUrlForUpload(combined, expiresIn = 3600) {
     const { bucket, key } = parseBucketAndKey(combined);
     const command = new PutObjectCommand({ Bucket: bucket, Key: key });
 
+    console.log(`Generating PUT URL for bucket: ${bucket}, key: ${key}`);
+    console.log(`Using endpoint: ${MINIO_PUBLIC_DOMAIN}`);
+
     // Generate presigned URL using the signing client
     // The URL should now be correctly formed by the SDK due to the endpoint configuration
     const signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
 
-    // Removed manual URL transformation, as the SDK should handle it with the correct endpoint.
+    console.log(`Generated URL: ${signedUrl}`);
     
     return signedUrl;
   } catch (err) {
