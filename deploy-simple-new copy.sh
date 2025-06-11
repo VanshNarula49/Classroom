@@ -80,17 +80,55 @@ if [ ! -f "$CERTS_OBTAINED_FLAG" ]; then
         print_warning "HTTP endpoint may not be accessible. Continuing anyway..."
     fi
 
-    print_status "Requesting Let's Encrypt certificate for $DOMAIN_NAME..."
-    docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" run --rm certbot certonly \
-      --webroot -w /var/www/certbot \
-      --email "$LETSENCRYPT_EMAIL" \
-      -d "$DOMAIN_NAME" \
-      --agree-tos \
-      --no-eff-email \
-      --non-interactive \
-      --force-renewal
-
-    print_success "Certificate acquisition process finished."
+    print_status "🔑 Ready for SSL certificate acquisition..."
+    echo ""
+    echo "================================================================"
+    echo "🚀 INTERACTIVE CERTBOT MODE"
+    echo "================================================================"
+    echo "The HTTP-only Nginx is running and accessible at http://$DOMAIN_NAME"
+    echo "You can now run Certbot commands interactively."
+    echo ""
+    echo "🎯 RECOMMENDED COMMAND:"
+    echo "docker-compose -f $MAIN_DOCKER_COMPOSE_FILE run --rm --no-deps certbot certonly \\"
+    echo "  --webroot -w /var/www/certbot \\"
+    echo "  --email $LETSENCRYPT_EMAIL \\"
+    echo "  -d $DOMAIN_NAME \\"
+    echo "  --agree-tos \\"
+    echo "  --no-eff-email \\"
+    echo "  --force-renewal"
+    echo ""
+    echo "🔧 OTHER USEFUL COMMANDS:"
+    echo "# Test mode (dry run):"
+    echo "docker-compose -f $MAIN_DOCKER_COMPOSE_FILE run --rm --no-deps certbot certonly \\"
+    echo "  --webroot -w /var/www/certbot --dry-run -d $DOMAIN_NAME"
+    echo ""
+    echo "# Interactive mode (you answer questions):"
+    echo "docker-compose -f $MAIN_DOCKER_COMPOSE_FILE run --rm --no-deps certbot certonly \\"
+    echo "  --webroot -w /var/www/certbot -d $DOMAIN_NAME"
+    echo ""
+    echo "# Check existing certificates:"
+    echo "docker-compose -f $MAIN_DOCKER_COMPOSE_FILE run --rm --no-deps certbot certificates"
+    echo ""
+    echo "# Debug with verbose output:"
+    echo "docker-compose -f $MAIN_DOCKER_COMPOSE_FILE run --rm --no-deps certbot certonly \\"
+    echo "  --webroot -w /var/www/certbot -d $DOMAIN_NAME --verbose"
+    echo ""
+    echo "================================================================"
+    
+    # Wait for user to run certbot manually
+    print_warning "⏳ Waiting for you to run Certbot..."
+    echo "Press ENTER after you've successfully obtained the SSL certificates"
+    echo "Or type 'skip' to continue without certificates (for testing)"
+    read -p "Ready to continue? " user_input
+    
+    if [ "$user_input" = "skip" ]; then
+        print_warning "⚠️  Skipping SSL certificate acquisition"
+        # Don't create the flag file, so certificates can be obtained later
+    else
+        print_success "✅ Proceeding with assumption that certificates were obtained"
+        # Create flag file assuming certificates were obtained
+        touch "$CERTS_OBTAINED_FLAG"
+    fi
     
     print_status "Stopping HTTP-only Nginx and restoring SSL config..."
     docker-compose -f "$MAIN_DOCKER_COMPOSE_FILE" stop nginx
