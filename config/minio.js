@@ -21,12 +21,13 @@ const s3Client = new S3Client({
 });
 
 // For presigned URLs, we need to use the external endpoint that clients can access
-// Since Nginx proxies /minio/ to MinIO root, we need to account for this
 const externalHost = process.env.DOMAIN_NAME ? `https://${process.env.DOMAIN_NAME}` : 'http://localhost';
+// Construct the full external endpoint for signing, including the /minio path
+const signingEndpoint = externalHost + MINIO_EXTERNAL_ENDPOINT;
 
 // S3 client specifically for generating presigned URLs.
 const s3ClientForSigning = new S3Client({
-  endpoint: externalHost, // Use the external host that browsers can reach
+  endpoint: signingEndpoint, // Use the external host + /minio path
   region: 'us-east-1',
   credentials: {
     accessKeyId: MINIO_ACCESS_KEY,
@@ -54,18 +55,10 @@ async function getPresignedUrlForGet(combined, expiresIn = 3600) {
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
 
     // Generate presigned URL using the signing client
-    let signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
+    // The URL should now be correctly formed by the SDK due to the endpoint configuration
+    const signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
     
-    // Transform the URL to include the /minio prefix for nginx proxy
-    // Change from http://localhost/bucket/key?... to http://localhost/minio/bucket/key?...
-    if (signedUrl.includes('://')) {
-      const urlParts = signedUrl.split('/');
-      if (urlParts.length >= 4) {
-        // Insert 'minio' after the domain part
-        urlParts.splice(3, 0, 'minio');
-        signedUrl = urlParts.join('/');
-      }
-    }
+    // Removed manual URL transformation, as the SDK should handle it with the correct endpoint.
 
     return signedUrl;
   } catch (err) {
@@ -81,18 +74,10 @@ async function getPresignedUrlForUpload(combined, expiresIn = 3600) {
     const command = new PutObjectCommand({ Bucket: bucket, Key: key });
 
     // Generate presigned URL using the signing client
-    let signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
-    
-    // Transform the URL to include the /minio prefix for nginx proxy
-    // Change from http://localhost/bucket/key?... to http://localhost/minio/bucket/key?...
-    if (signedUrl.includes('://')) {
-      const urlParts = signedUrl.split('/');
-      if (urlParts.length >= 4) {
-        // Insert 'minio' after the domain part
-        urlParts.splice(3, 0, 'minio');
-        signedUrl = urlParts.join('/');
-      }
-    }
+    // The URL should now be correctly formed by the SDK due to the endpoint configuration
+    const signedUrl = await getSignedUrl(s3ClientForSigning, command, { expiresIn });
+
+    // Removed manual URL transformation, as the SDK should handle it with the correct endpoint.
     
     return signedUrl;
   } catch (err) {
