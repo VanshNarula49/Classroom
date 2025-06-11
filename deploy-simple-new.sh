@@ -57,13 +57,24 @@ else
     exit 1
 fi
 
-# Step 3: Start services
-print_status "Step 3: Starting all services..."
+# Step 3: Fix nginx configuration for correct API port
+print_status "Step 3: Fixing nginx configuration..."
+if [ -f "docker/nginx-simple/nginx.conf" ]; then
+    # Replace any instance of api:5000 with api:3000 in nginx config
+    sed -i.bak 's/proxy_pass http:\/\/api:5000\//proxy_pass http:\/\/api:3000\//' docker/nginx-simple/nginx.conf
+    print_success "Nginx configuration updated to use port 3000"
+else
+    print_error "Nginx configuration file not found!"
+    exit 1
+fi
+
+# Step 4: Start services
+print_status "Step 4: Starting all services..."
 docker-compose -f docker/docker-compose.simple.yml up -d --build
 print_success "Services started"
 
-# Step 4: Wait and test
-print_status "Step 4: Waiting for services to be ready..."
+# Step 5: Wait and test
+print_status "Step 5: Waiting for services to be ready..."
 sleep 30
 
 print_status "Testing services..."
@@ -80,6 +91,8 @@ if curl -f "http://localhost/api/health" > /dev/null 2>&1; then
     print_success "✅ API is responding at http://localhost/api/health"
 else
     print_warning "❌ API may not be responding"
+    print_status "Checking API logs..."
+    docker logs classroom-api --tail 10
 fi
 
 # Test MinIO
@@ -89,8 +102,8 @@ else
     print_warning "❌ MinIO may not be accessible"
 fi
 
-# Step 5: Show status
-print_status "Step 5: Deployment Summary"
+# Step 6: Show status
+print_status "Step 6: Deployment Summary"
 echo ""
 echo "=== SERVICES STATUS ==="
 docker-compose -f docker/docker-compose.simple.yml ps
