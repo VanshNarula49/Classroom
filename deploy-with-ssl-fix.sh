@@ -32,19 +32,19 @@ print_error() {
 }
 
 # Default configuration
-DEFAULT_DOMAIN="yourdomain.com"
-DEFAULT_EMAIL="admin@yourdomain.com"
+DEFAULT_DOMAIN="your.subdomain.com"
+DEFAULT_EMAIL="admin@your.subdomain.com"
 
 # Get domain name and email from user
-read -p "Enter your domain name (default: $DEFAULT_DOMAIN): " DOMAIN_NAME
+read -p "Enter your subdomain (e.g., app.example.com, default: $DEFAULT_DOMAIN): " DOMAIN_NAME
 DOMAIN_NAME=${DOMAIN_NAME:-$DEFAULT_DOMAIN}
 
 read -p "Enter your email for Let\'s Encrypt (default: $DEFAULT_EMAIL): " EMAIL
 EMAIL=${EMAIL:-$DEFAULT_EMAIL}
 
-# Validate domain format
-if [[ ! $DOMAIN_NAME =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$ ]]; then
-    print_error "Invalid domain format: $DOMAIN_NAME. Please use a valid domain like 'example.com'"
+# Validate domain format (simple check for subdomain)
+if [[ ! $DOMAIN_NAME =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]{1,253}[a-zA-Z0-9]$ ]]; then
+    print_error "Invalid domain format: $DOMAIN_NAME. Please use a valid subdomain like 'app.example.com'"
     exit 1
 fi
 if [[ ! $EMAIL =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
@@ -150,17 +150,24 @@ MAX_RETRIES=10
 RETRY_COUNT=0
 NGINX_READY=false
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if curl -s --head "http://$DOMAIN_NAME/.well-known/acme-challenge/test_token_$(date +%s)" | grep "404 Not Found" > /dev/null; then
-        print_success "Nginx is responding and serving from /var/www/certbot (expected 404 for test token)."
+    # Test with a unique file to ensure it's not cached and Nginx is serving the challenge directory
+    TEST_TOKEN_FILE="test_token_$(date +%s)"
+    docker exec classroom-nginx-proxy sh -c "echo 'test' > /var/www/certbot/$TEST_TOKEN_FILE"
+    
+    if curl -s --head "http://$DOMAIN_NAME/.well-known/acme-challenge/$TEST_TOKEN_FILE" | grep "200 OK" > /dev/null; then
+        print_success "Nginx is responding and serving from /var/www/certbot."
         NGINX_READY=true
+        docker exec classroom-nginx-proxy rm "/var/www/certbot/$TEST_TOKEN_FILE" # Clean up test file
         break
-    elif curl -s --head "http://localhost/.well-known/acme-challenge/test_token_$(date +%s)" | grep "404 Not Found" > /dev/null; then
-        print_success "Nginx (localhost) is responding and serving from /var/www/certbot (expected 404 for test token)."
+    elif curl -s --head "http://localhost/.well-known/acme-challenge/$TEST_TOKEN_FILE" | grep "200 OK" > /dev/null; then
+        print_success "Nginx (localhost) is responding and serving from /var/www/certbot."
         NGINX_READY=true
+        docker exec classroom-nginx-proxy rm "/var/www/certbot/$TEST_TOKEN_FILE" # Clean up test file
         break
     else
         RETRY_COUNT=$((RETRY_COUNT+1))
         print_warning "Attempt $RETRY_COUNT/$MAX_RETRIES: Nginx not ready yet or not serving challenge directory correctly. Waiting 10s..."
+        docker exec classroom-nginx-proxy rm -f "/var/www/certbot/$TEST_TOKEN_FILE" # Clean up test file on failure too
         sleep 10
     fi
 done
@@ -180,6 +187,7 @@ STAGING_SUCCESSFUL=false
 
 # Try Let's Encrypt staging first
 print_status "Attempting certificate generation with Let's Encrypt (Staging)..."
+# Note: For subdomains, Certbot handles them like any other domain. No special flags needed unless it's a wildcard.
 if docker run --rm \
     -v certbot_certs:/etc/letsencrypt \
     -v certbot_www:/var/www/certbot \
@@ -188,16 +196,16 @@ if docker run --rm \
     --email "$EMAIL" --agree-tos --no-eff-email \
     --staging --force-renewal \
     -d "$DOMAIN_NAME"; then
-    print_success "Staging certificate generation successful."
+    print_success "Staging certificate generation successful for $DOMAIN_NAME."
     STAGING_SUCCESSFUL=true
 else
-    print_error "Staging certificate generation failed. Check Certbot logs above."
-    print_warning "Ensure your domain $DOMAIN_NAME correctly points to this server IP and port 80 is open."
+    print_error "Staging certificate generation failed for $DOMAIN_NAME. Check Certbot logs above."
+    print_warning "Ensure your subdomain $DOMAIN_NAME correctly points to this server IP and port 80 is open."
 fi
 
 CERTIFICATE_GENERATED=false
 if [ "$STAGING_SUCCESSFUL" = true ]; then
-    print_status "Attempting certificate generation with Let's Encrypt (Production)..."
+    print_status "Attempting certificate generation with Let's Encrypt (Production) for $DOMAIN_NAME..."
     if docker run --rm \
         -v certbot_certs:/etc/letsencrypt \
         -v certbot_www:/var/www/certbot \
@@ -206,20 +214,20 @@ if [ "$STAGING_SUCCESSFUL" = true ]; then
         --email "$EMAIL" --agree-tos --no-eff-email \
         --force-renewal \
         -d "$DOMAIN_NAME"; then
-        print_success "Production certificate generation successful."
+        print_success "Production certificate generation successful for $DOMAIN_NAME."
         CERTIFICATE_GENERATED=true
     else
-        print_warning "Production certificate generation failed. Staging certificates might be used if available from the successful staging run. Check /etc/letsencrypt/live/$DOMAIN_NAME on the certbot_certs volume."
+        print_warning "Production certificate generation failed for $DOMAIN_NAME. Staging certificates might be used if available from the successful staging run. Check /etc/letsencrypt/live/$DOMAIN_NAME on the certbot_certs volume."
         # Check if staging certs exist as a fallback
         if docker run --rm -v certbot_certs:/etc/letsencrypt alpine ls "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" > /dev/null 2>&1; then
-             print_warning "Using previously generated staging certificate for now."
+             print_warning "Using previously generated staging certificate for $DOMAIN_NAME for now."
              CERTIFICATE_GENERATED=true # Staging certs are there
         fi
     fi
 fi
 
 if [ "$CERTIFICATE_GENERATED" = false ]; then
-    print_warning "Let's Encrypt certificate generation failed (either staging or production). Attempting to create self-signed certificates for $DOMAIN_NAME..."
+    print_warning "Let's Encrypt certificate generation failed for $DOMAIN_NAME (either staging or production). Attempting to create self-signed certificates..."
     # Create self-signed certificate
     docker run --rm \
         -v certbot_certs:/etc/letsencrypt \
@@ -235,18 +243,18 @@ if [ "$CERTIFICATE_GENERATED" = false ]; then
         print_warning "Your site will use a self-signed certificate, which will cause browser warnings."
         CERTIFICATE_GENERATED=true # Self-signed is a form of generated cert
     else
-        print_error "Failed to create self-signed certificate. SSL will likely not work."
+        print_error "Failed to create self-signed certificate for $DOMAIN_NAME. SSL will likely not work."
         # No certs available, Nginx SSL config will fail.
     fi
 fi
 
 if [ "$CERTIFICATE_GENERATED" = false ]; then
-    print_error "No SSL certificates (Let's Encrypt or self-signed) could be configured. Nginx SSL setup will fail."
+    print_error "No SSL certificates (Let's Encrypt or self-signed) could be configured for $DOMAIN_NAME. Nginx SSL setup will fail."
     print_status "Stopping services that were started for HTTP challenge..."
     docker-compose -f docker/docker-compose.temp.yml down
     exit 1
 fi
-print_success "SSL certificate preparation step completed."
+print_success "SSL certificate preparation step completed for $DOMAIN_NAME."
 
 
 # Step 10: Create SSL DH parameters
@@ -265,7 +273,7 @@ fi
 print_success "SSL DH parameters prepared."
 
 # Step 11: Switch to SSL Nginx configuration
-print_status "Step 11: Switching to SSL Nginx configuration..."
+print_status "Step 11: Switching to SSL Nginx configuration for $DOMAIN_NAME..."
 
 # Stop HTTP-only services first
 print_status "Stopping HTTP-only services..."
@@ -286,7 +294,7 @@ docker-compose -f docker/docker-compose.prod.yml up -d
 print_success "All services started with SSL configuration."
 
 # Step 12: Wait for services and test
-print_status "Step 12: Finalizing deployment and testing..."
+print_status "Step 12: Finalizing deployment and testing for $DOMAIN_NAME..."
 print_status "Waiting for services to stabilize (45 seconds)..."
 sleep 45
 
@@ -294,9 +302,9 @@ print_status "Testing service connectivity..."
 # Test HTTP redirect (should redirect to HTTPS)
 HTTP_STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" "http://$DOMAIN_NAME")
 if [[ "$HTTP_STATUS_CODE" == "301" || "$HTTP_STATUS_CODE" == "302" ]]; then
-    print_success "HTTP to HTTPS redirect is working (Status: $HTTP_STATUS_CODE)."
+    print_success "HTTP to HTTPS redirect is working for $DOMAIN_NAME (Status: $HTTP_STATUS_CODE)."
 else
-    print_warning "HTTP to HTTPS redirect may not be working as expected (Status: $HTTP_STATUS_CODE). Expected 301 or 302."
+    print_warning "HTTP to HTTPS redirect may not be working as expected for $DOMAIN_NAME (Status: $HTTP_STATUS_CODE). Expected 301 or 302."
     curl -Iks "http://$DOMAIN_NAME" # Show headers for debugging
 fi
 
@@ -315,7 +323,7 @@ else
 fi
 
 # Step 13: Display final status
-print_status "Step 13: Deployment Summary"
+print_status "Step 13: Deployment Summary for $DOMAIN_NAME"
 echo ""
 echo "=== DEPLOYMENT SUMMARY ==="
 echo "Domain: https://$DOMAIN_NAME (and http://$DOMAIN_NAME should redirect)"
@@ -325,7 +333,9 @@ echo "Services Status:"
 docker-compose -f docker/docker-compose.prod.yml ps
 echo ""
 echo "=== NEXT STEPS ==="
-echo "1. VERIFY DNS: Ensure $DOMAIN_NAME (and www.$DOMAIN_NAME if used) correctly points to this server's public IP address."
+echo "1. VERIFY DNS: Ensure $DOMAIN_NAME correctly points to this server's public IP address."
+    echo "   If you are using a www variant (e.g. www.$DOMAIN_NAME), ensure it also points to this server's IP."
+    echo "   The current Nginx configuration is set up for $DOMAIN_NAME only (no www)."
 echo "2. TEST THOROUGHLY: Open https://$DOMAIN_NAME in your browser and test all application functionalities."
 echo "3. CHECK LOGS: If any issues, check logs: docker-compose -f docker/docker-compose.prod.yml logs <service_name>"
 echo "4. SSL RENEWAL: The 'certbot' service in docker-compose.prod.yml is configured to attempt renewal automatically."
