@@ -83,7 +83,7 @@ print_status "Step 5: Building frontend..."
 if [ ! -d "Frontend/dist" ]; then
     print_status "Building frontend with Docker..."
     docker run --rm -v "$(pwd)/Frontend:/app" -w /app node:18-alpine sh -c "
-        npm install && 
+        npm install && \\
         npm run build
     "
 fi
