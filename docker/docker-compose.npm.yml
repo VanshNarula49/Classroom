@@ -7,17 +7,17 @@ services:
     restart: unless-stopped
     ports:
       - '80:80'
-      - '81:81'    # Admin interface
       - '443:443'
-    environment:
-      DB_MYSQL_HOST: "npm-db"
-      DB_MYSQL_PORT: 3306
-      DB_MYSQL_USER: "npm"
-      DB_MYSQL_PASSWORD: "npm"
-      DB_MYSQL_NAME: "npm"
+      - '81:81'  # Admin panel
     volumes:
       - npm_data:/data
       - npm_letsencrypt:/etc/letsencrypt
+    environment:
+      - DB_MYSQL_HOST=npm-db
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=npm
+      - DB_MYSQL_PASSWORD=npm_password
+      - DB_MYSQL_NAME=npm
     depends_on:
       - npm-db
 
@@ -26,22 +26,12 @@ services:
     container_name: classroom-npm-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 'npm'
-      MYSQL_DATABASE: 'npm'
-      MYSQL_USER: 'npm'
-      MYSQL_PASSWORD: 'npm'
+      - MYSQL_ROOT_PASSWORD=npm_root_password
+      - MYSQL_DATABASE=npm
+      - MYSQL_USER=npm
+      - MYSQL_PASSWORD=npm_password
     volumes:
-      - npm_mysql:/var/lib/mysql
-
-  frontend:
-    image: nginx:alpine
-    container_name: classroom-frontend
-    volumes:
-      - ../Frontend/dist:/usr/share/nginx/html
-      - ./nginx-simple/frontend.conf:/etc/nginx/conf.d/default.conf
-    restart: unless-stopped
-    expose:
-      - "80"
+      - npm_mysql_data:/var/lib/mysql
 
   api:
     build:
@@ -57,7 +47,7 @@ services:
       - DB_USER=avnadmin
       - DB_PASSWORD=yourpassword
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_EXTERNAL_ENDPOINT=/minio
+      - MINIO_EXTERNAL_ENDPOINT=https://classroom.set4.me/minio
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword
       - JWT_SECRET=your-production-jwt-secret-change-this
@@ -68,8 +58,14 @@ services:
       minio:
         condition: service_healthy
     restart: unless-stopped
-    expose:
-      - "3000"
+
+  frontend:
+    image: nginx:alpine
+    container_name: classroom-frontend
+    volumes:
+      - ../Frontend/dist:/usr/share/nginx/html
+      - ./nginx-simple/frontend.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
 
   db:
     image: postgres:13
@@ -101,9 +97,6 @@ services:
     volumes:
       - minio_data:/data
     restart: unless-stopped
-    expose:
-      - "9000"
-      - "9090"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
@@ -130,4 +123,4 @@ volumes:
   minio_data:
   npm_data:
   npm_letsencrypt:
-  npm_mysql:
+  npm_mysql_data:
