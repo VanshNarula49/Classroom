@@ -25,13 +25,15 @@ services:
       - DB_USER=avnadmin
       - DB_PASSWORD=yourpassword
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_EXTERNAL_ENDPOINT=http://localhost/minio
+      - MINIO_EXTERNAL_ENDPOINT=/minio
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadminpassword
       - JWT_SECRET=your-production-jwt-secret-change-this
     depends_on:
-      - db
-      - minio
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
 
   db:
@@ -47,6 +49,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ../db-init:/docker-entrypoint-initdb.d
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avnadmin -d myclassroomdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio:
     image: quay.io/minio/minio

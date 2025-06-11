@@ -34,25 +34,25 @@ app.use(passport.initialize());
 // Passport.js authentication setup
 require('./config/Passport')(passport);  // Initialize Passport.js
 
-// Health check route
-app.get('/health', (req, res) => {
+// Routes - Add /api prefix to all routes
+app.use('/api/users', userRoutes);
+app.use('/api/courses',coursesRoutes)
+app.use('/api/material',materialRoutes)
+app.use('/api/assignments',assignmentsRoutes)
+app.use('/api/queries',queryRoutes)
+app.use('/api/submissions', submissionRoutes)
+app.use('/api/announcements', announcementRoutes)
+app.use('/api/comments', commentRoutes)
+app.use('/api/grades', gradeRoutes) // Register grade routes
+
+// Health check route (keep without /api prefix)
+app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     message: 'Classroom API is running',
     timestamp: new Date().toISOString()
   });
 });
-
-// Routes
-app.use('/users', userRoutes);
-app.use('/courses',coursesRoutes)
-app.use('/material',materialRoutes)
-app.use('/assignments',assignmentsRoutes)
-app.use('/queries',queryRoutes)
-app.use('/submissions', submissionRoutes)
-app.use('/announcements', announcementRoutes)
-app.use('/comments', commentRoutes)
-app.use('/grades', gradeRoutes) // Register grade routes
 
 // Test DB connection before starting the server
 pool.connect()
