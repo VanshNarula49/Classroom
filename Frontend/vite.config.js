@@ -15,7 +15,7 @@ export default defineConfig({
     port: 5173, // optional, change if needed
   },
   define: {
-    'process.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || 'http://localhost:80'),
-    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:80/api')
+    'process.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || ''),
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || '/api')
   }
 })

@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
-
-// Define API constants
-const axiosInstance = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // Main App Component
 export default function App() {
