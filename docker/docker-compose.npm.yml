@@ -67,7 +67,7 @@ services:
       - ./nginx-simple/frontend.conf:/etc/nginx/conf.d/default.conf
     restart: unless-stopped
     expose:
-      - "80"
+      - "6000"
 
   db:
     image: postgres:13
