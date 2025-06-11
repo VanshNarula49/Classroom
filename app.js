@@ -34,7 +34,7 @@ app.use(passport.initialize());
 // Passport.js authentication setup
 require('./config/Passport')(passport);  // Initialize Passport.js
 
-// Routes - Add /api prefix to all routes
+// Routes - nginx handles /api prefix, so routes are without /api
 app.use('/users', userRoutes);
 app.use('/courses',coursesRoutes)
 app.use('/material',materialRoutes)
@@ -45,7 +45,7 @@ app.use('/announcements', announcementRoutes)
 app.use('/comments', commentRoutes)
 app.use('/grades', gradeRoutes) // Register grade routes
 
-// Health check route (keep consistent with other routes)
+// Health check route (nginx will proxy /api/health to /health)
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
