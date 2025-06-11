@@ -123,20 +123,33 @@ NODE_ENV=production
 EOF
 print_success ".env file created"
 
-# Step 7: Start with HTTP-only nginx configuration for Let's Encrypt Challenge
+# Step 7: Start with HTTP-only nginx configuration for Let\'s Encrypt Challenge
 print_status "Step 7: Preparing HTTP-only Nginx configuration..."
 if [ ! -f "docker/nginx-prod/nginx.http-only.conf" ]; then
-    print_error "docker/nginx-prod/nginx.http-only.conf not found!"
+    print_error "HTTP-only Nginx template (docker/nginx-prod/nginx.http-only.conf) not found!"
     exit 1
 fi
 cp docker/nginx-prod/nginx.http-only.conf docker/nginx-prod/default.conf.temp
 
-# Substitute NGINX_DOMAIN in the temporary config
-NGINX_DOMAIN_VALUE=$DOMAIN_NAME docker run --rm \
-    -v "$(pwd)/docker/nginx-prod/default.conf.temp:/etc/nginx/templates/default.conf.template" \
-    nginx:latest envsubst '${NGINX_DOMAIN_VALUE}' < /etc/nginx/templates/default.conf.template > "$(pwd)/docker/nginx-prod/default.conf"
+print_status "Substituting domain in HTTP-only Nginx configuration..."
+# The template nginx.http-only.conf uses ${NGINX_DOMAIN}
+if docker run --rm \\
+    -e NGINX_DOMAIN="$DOMAIN_NAME" \\
+    -v "$(pwd)/docker/nginx-prod/default.conf.temp:/tmp/default.conf.template:ro" \\
+    nginx:latest \\
+    sh -c "envsubst '\\$NGINX_DOMAIN' < /tmp/default.conf.template" > "$(pwd)/docker/nginx-prod/default.conf"; then
+    print_success "HTTP-only Nginx configuration (default.conf) prepared."
+else
+    print_error "Failed to prepare HTTP-only Nginx configuration."
+    rm -f docker/nginx-prod/default.conf.temp
+    exit 1
+fi
+rm -f docker/nginx-prod/default.conf.temp # Clean up the intermediate temp file
 
 # Create a temporary docker-compose file that uses the HTTP-only config
+# Ensure the source path in docker-compose.prod.yml for nginx config is what we expect to replace
+# Typically: ./nginx-prod/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+# We are replacing it with: ./nginx-prod/default.conf:/etc/nginx/conf.d/default.conf
 sed 's|./nginx-prod/nginx.prod.conf:/etc/nginx/conf.d/default.conf|./nginx-prod/default.conf:/etc/nginx/conf.d/default.conf|' docker/docker-compose.prod.yml > docker/docker-compose.temp.yml
 
 print_status "Starting services with HTTP-only Nginx configuration..."
@@ -280,17 +293,58 @@ print_status "Stopping HTTP-only services..."
 docker-compose -f docker/docker-compose.temp.yml down
 rm -f docker/docker-compose.temp.yml
 
-# Generate the SSL nginx config (nginx.prod.conf) with environment variables
+print_status "Preparing SSL Nginx configuration (default.conf)..."
 if [ ! -f "docker/nginx-prod/nginx.prod.conf" ]; then
-    print_error "docker/nginx-prod/nginx.prod.conf (SSL version) not found!"
+    print_error "SSL Nginx template (docker/nginx-prod/nginx.prod.conf) not found!"
     exit 1
 fi
-NGINX_DOMAIN_VALUE=$DOMAIN_NAME docker run --rm \
-    -v "$(pwd)/docker/nginx-prod/nginx.prod.conf:/etc/nginx/templates/nginx.prod.conf.template" \
-    nginx:latest envsubst '${NGINX_DOMAIN_VALUE}' < /etc/nginx/templates/nginx.prod.conf.template > "$(pwd)/docker/nginx-prod/default.conf"
+# The template nginx.prod.conf uses ${NGINX_DOMAIN}
+if docker run --rm \\
+    -e NGINX_DOMAIN="$DOMAIN_NAME" \\
+    -v "$(pwd)/docker/nginx-prod/nginx.prod.conf:/tmp/nginx.prod.template:ro" \\
+    nginx:latest \\
+    sh -c "envsubst '\\$NGINX_DOMAIN' < /tmp/nginx.prod.template" > "$(pwd)/docker/nginx-prod/default.conf"; then
+    print_success "SSL Nginx configuration (default.conf) prepared."
+else
+    print_error "Failed to prepare SSL Nginx configuration."
+    exit 1
+fi
 
 print_status "Starting all services with SSL configuration using docker-compose.prod.yml..."
-docker-compose -f docker/docker-compose.prod.yml up -d
+# Ensure docker-compose.prod.yml now correctly points to the final default.conf for nginx
+# The sed command in step 7 made docker-compose.temp.yml point to default.conf
+# The main docker-compose.prod.yml should already be pointing to the correct final location
+# if its original nginx config mount was to /etc/nginx/conf.d/default.conf and we are writing to docker/nginx-prod/default.conf
+# Let's verify the volume mount in docker-compose.prod.yml for nginx-proxy service:
+# It should be: - ./nginx-prod/default.conf:/etc/nginx/conf.d/default.conf
+# OR the script needs to ensure the original docker-compose.prod.yml is used but with the correct file.
+# The current script uses the original docker-compose.prod.yml.
+# The `sed` command in step 7 creates `docker-compose.temp.yml`.
+# The `docker-compose.prod.yml` itself is NOT modified by `sed`.
+# So, if `docker-compose.prod.yml` originally has:
+#  volumes:
+#    - ./nginx-prod/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+# Then this will be used in the final `docker-compose up`.
+# The script correctly writes the processed SSL config to `$(pwd)/docker/nginx-prod/default.conf`.
+# So, the docker-compose.prod.yml *must* mount `docker/nginx-prod/default.conf` not `docker/nginx-prod/nginx.prod.conf`.
+
+# Let's assume docker-compose.prod.yml is already set to mount default.conf, or we adjust it.
+# The `sed` command in step 7 implies the original docker-compose.prod.yml mounts nginx.prod.conf.
+# This means for the final step, we need to ensure the main docker-compose.prod.yml also uses the generated default.conf
+# The script currently does:
+# NGINX_DOMAIN_VALUE=$DOMAIN_NAME docker run ... > "$(pwd)/docker/nginx-prod/default.conf"
+# docker-compose -f docker/docker-compose.prod.yml up -d
+# This is correct IF docker-compose.prod.yml mounts default.conf.
+# If it mounts nginx.prod.conf, then the output of envsubst should go to nginx.prod.conf,
+# OR docker-compose.prod.yml should be modified.
+# The current script writes to default.conf and the sed command was only for the .temp.yml.
+# This means the main docker-compose.prod.yml must be changed to use the generated default.conf.
+# I will add a step to ensure this.
+
+# Create a final docker-compose.prod.ssl.yml that points to the generated default.conf
+sed 's|./nginx-prod/nginx.prod.conf:/etc/nginx/conf.d/default.conf|./nginx-prod/default.conf:/etc/nginx/conf.d/default.conf|' docker/docker-compose.prod.yml > docker/docker-compose.prod.ssl.yml
+
+docker-compose -f docker/docker-compose.prod.ssl.yml up -d
 print_success "All services started with SSL configuration."
 
 # Step 12: Wait for services and test
@@ -312,14 +366,14 @@ fi
 if curl -kfsS "https://$DOMAIN_NAME" > /dev/null; then
     print_success "HTTPS is responding on https://$DOMAIN_NAME"
 else
-    print_warning "HTTPS may not be responding on https://$DOMAIN_NAME. Check Nginx logs: docker-compose -f docker/docker-compose.prod.yml logs nginx-proxy"
+    print_warning "HTTPS may not be responding on https://$DOMAIN_NAME. Check Nginx logs: docker-compose -f docker/docker-compose.prod.ssl.yml logs nginx-proxy"
 fi
 
 # Test API
 if curl -kfsS "https://$DOMAIN_NAME/api/health" > /dev/null; then
     print_success "API is responding at https://$DOMAIN_NAME/api/health"
 else
-    print_warning "API may not be responding at https://$DOMAIN_NAME/api/health. Check API logs: docker-compose -f docker/docker-compose.prod.yml logs api"
+    print_warning "API may not be responding at https://$DOMAIN_NAME/api/health. Check API logs: docker-compose -f docker/docker-compose.prod.ssl.yml logs api"
 fi
 
 # Step 13: Display final status
@@ -330,30 +384,29 @@ echo "Domain: https://$DOMAIN_NAME (and http://$DOMAIN_NAME should redirect)"
 echo "Email for SSL: $EMAIL"
 echo ""
 echo "Services Status:"
-docker-compose -f docker/docker-compose.prod.yml ps
+docker-compose -f docker/docker-compose.prod.ssl.yml ps
 echo ""
 echo "=== NEXT STEPS ==="
 echo "1. VERIFY DNS: Ensure $DOMAIN_NAME correctly points to this server's public IP address."
     echo "   If you are using a www variant (e.g. www.$DOMAIN_NAME), ensure it also points to this server's IP."
     echo "   The current Nginx configuration is set up for $DOMAIN_NAME only (no www)."
 echo "2. TEST THOROUGHLY: Open https://$DOMAIN_NAME in your browser and test all application functionalities."
-echo "3. CHECK LOGS: If any issues, check logs: docker-compose -f docker/docker-compose.prod.yml logs <service_name>"
+echo "3. CHECK LOGS: If any issues, check logs: docker-compose -f docker/docker-compose.prod.ssl.yml logs <service_name>"
 echo "4. SSL RENEWAL: The 'certbot' service in docker-compose.prod.yml is configured to attempt renewal automatically."
-echo "   You can check its logs: docker-compose -f docker/docker-compose.prod.yml logs certbot"
-echo "   To manually renew (if needed): docker-compose -f docker/docker-compose.prod.yml run --rm certbot renew"
+echo "   You can check its logs: docker-compose -f docker/docker-compose.prod.ssl.yml logs certbot"
+echo "   To manually renew (if needed): docker-compose -f docker/docker-compose.prod.ssl.yml run --rm certbot renew"
 echo ""
 
-# Cleanup temporary files (default.conf is now the main Nginx config, so don't remove it if it's the target of the volume mount)
+# Cleanup temporary files
 rm -f docker/nginx-prod/default.conf.temp
-# The script now directly writes to docker/nginx-prod/default.conf, which is used by docker-compose.prod.yml after the sed step.
-# The original nginx.prod.conf is the template.
+# rm -f docker/docker-compose.prod.ssl.yml # Keep this file as it's now the primary one for running state
 
 print_success "Deployment script completed! 🎉"
 echo ""
 print_status "Application should be accessible at: https://$DOMAIN_NAME"
-print_status "View logs with: docker-compose -f docker/docker-compose.prod.yml logs -f [service_name]"
+print_status "View logs with: docker-compose -f docker/docker-compose.prod.ssl.yml logs -f [service_name]"
 echo ""
-print_status "To stop services: docker-compose -f docker/docker-compose.prod.yml down"
-print_status "To restart services: docker-compose -f docker/docker-compose.prod.yml restart"
+print_status "To stop services: docker-compose -f docker/docker-compose.prod.ssl.yml down"
+print_status "To restart services: docker-compose -f docker/docker-compose.prod.ssl.yml restart"
 
 exit 0
