@@ -9,7 +9,18 @@ export default function AuthTabs() {
     <div className="flex flex-col min-h-screen">
 
       <div className="fixed w-full bg-gray-100 text-gray-600 text-sm py-2 border-b z-20 text-center space-y-1">
-        <div>This page's database refreshes automatically every 24 hours.</div>
+        <div className="text-xs text-gray-500">
+          <p className="text-gray-800">
+            <u>Demo Credentials :</u>
+            <strong className="ml-4">Professor:</strong>
+            <span className="ml-2">Email – <em>joe@example.com</em></span>
+            <span className="ml-4">Password – <em>123456</em></span>
+            <strong className="ml-6">Student:</strong>
+            <span className="ml-2">Email – <em>jane@example.org</em></span>
+            <span className="ml-4">Password – <em>123456</em></span>
+          </p>
+
+        </div>
       </div>
 
 
@@ -37,12 +48,6 @@ export default function AuthTabs() {
           </div>
         </Tabs>
         </div>
-      </div>
-      <div className="fixed bottom-0 w-full bg-gray-100 text-gray-600 text-sm py-2 border-t text-center">
-        <div className="text-xs text-gray-500">
-          <strong>Test Logins:</strong> joe@example.com / 123456 (Professor), jane@example.org / 123456 (Student)
-        </div>
-        © 2025 CampusCloud
       </div>
     </div>
   );
