@@ -2,21 +2,24 @@
 
 A full-stack web application for managing classroom activities, assignments, and course materials. Built with React frontend, Node.js/Express backend, PostgreSQL database, and MinIO for file storage.
 
-## 🚀 Features
+## Features
 
 ### Authentication & Authorization
+
 - JWT-based authentication
 - Role-based access control (Teachers, TAs, Students)
 - Attribute-based access control (ABAC) using CASL
 - Secure user registration and login
 
 ### Course Management
+
 - Create and manage courses
 - Course enrollment with unique codes
 - Role management (Professor, TA, Student)
 - Course streaming and announcements
 
 ### Assignment System
+
 - Create and distribute assignments
 - File upload support for assignments
 - Student submission tracking
@@ -24,16 +27,19 @@ A full-stack web application for managing classroom activities, assignments, and
 - Grade release control
 
 ### Material Management
+
 - Upload and organize course materials
 - File sharing with secure access
 - Material categorization
 
 ### Communication
+
 - Course announcements
 - Comment system for materials and assignments
 - Real-time updates
 
 ### File Storage
+
 - Secure file upload/download using MinIO
 - Presigned URLs for direct file access
 - File organization by course and type
@@ -72,6 +78,7 @@ Storage (MinIO)
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **React 18** - UI library
 - **Vite** - Build tool and dev server
 - **Tailwind CSS** - Styling framework
@@ -79,6 +86,7 @@ Storage (MinIO)
 - **React Router** - Client-side routing
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **PostgreSQL** - Primary database
@@ -88,6 +96,7 @@ Storage (MinIO)
 - **jsonwebtoken** - JWT implementation
 
 ### Storage & Infrastructure
+
 - **MinIO** - S3-compatible object storage
 - **Docker** - Containerization
 - **Nginx Proxy Manager** - Reverse proxy and SSL
@@ -97,7 +106,6 @@ Storage (MinIO)
 - **Node.js** (v18 or higher)
 - **Docker** and **Docker Compose**
 - **Git**
-
 
 ## 📁 Project Structure
 
@@ -136,7 +144,9 @@ Classroom/
 ## 🔧 Configuration
 
 ### Database Schema
+
 The application uses PostgreSQL with the following main tables:
+
 - `User` - User authentication and profiles
 - `Course` - Course information
 - `CourseParticipation` - User-course relationships
@@ -150,30 +160,36 @@ The application uses PostgreSQL with the following main tables:
 ### API Endpoints
 
 #### Authentication
+
 - `POST /api/users/register` - User registration
 - `POST /api/users/login` - User login
 - `GET /api/users/profile` - Get user profile
 
 #### Courses
+
 - `GET /api/courses` - List user's courses
 - `POST /api/courses` - Create new course
 - `GET /api/courses/:id` - Get course details
 - `POST /api/courses/join` - Join course by code
 
 #### Assignments
+
 - `GET /api/assignments/:courseId` - List course assignments
 - `POST /api/assignments/:courseId` - Create assignment
 - `GET /api/assignments/single/:id` - Get assignment details
 
 #### Submissions
+
 - `POST /api/submissions` - Submit assignment
 - `GET /api/submissions/assignment/:id` - Get submissions
 
 #### Materials
+
 - `GET /api/material/:courseId` - List course materials
 - `POST /api/material/:courseId` - Upload material
 
 #### Other Endpoints
+
 - `GET /api/announcements/:courseId` - Course announcements
 - `GET /api/comments/:type/:parentId` - Get comments
 - `POST /api/grades` - Submit grades
@@ -181,44 +197,49 @@ The application uses PostgreSQL with the following main tables:
 ### Environment Variables
 
 #### Backend Environment Variables
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | Database host | `localhost` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_NAME` | Database name | 
-| `DB_USER` | Database username | 
-| `DB_PASSWORD` | Database password | Required |
-| `JWT_SECRET` | JWT signing secret | Required |
-| `MINIO_ENDPOINT` | MinIO server endpoint |
-| `MINIO_ROOT_USER` | MinIO access key | 
-| `MINIO_ROOT_PASSWORD` | MinIO secret key |  
+
+| Variable              | Description           | Default     |
+| --------------------- | --------------------- | ----------- |
+| `DB_HOST`             | Database host         | `localhost` |
+| `DB_PORT`             | Database port         | `5432`      |
+| `DB_NAME`             | Database name         |
+| `DB_USER`             | Database username     |
+| `DB_PASSWORD`         | Database password     | Required    |
+| `JWT_SECRET`          | JWT signing secret    | Required    |
+| `MINIO_ENDPOINT`      | MinIO server endpoint |
+| `MINIO_ROOT_USER`     | MinIO access key      |
+| `MINIO_ROOT_PASSWORD` | MinIO secret key      |
 
 #### Frontend Environment Variables
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_API_BASE_URL` | API base URL | `""` |
-| `VITE_API_URL` | API endpoint path | `/api` |
 
+| Variable            | Description       | Default |
+| ------------------- | ----------------- | ------- |
+| `VITE_API_BASE_URL` | API base URL      | `""`    |
+| `VITE_API_URL`      | API endpoint path | `/api`  |
 
 ## 🔒 Security Features
 
 ### Authentication
+
 - JWT tokens with configurable expiration
 - Secure password hashing with bcrypt
 - Protected routes and middleware
 
 ### Authorization
+
 - Role-based access control (RBAC)
 - Attribute-based access control (ABAC) with CASL
 - Resource-level permissions
 - Course-specific role management
 
 ### File Security
+
 - Presigned URLs for secure file access
 - Upload token verification
 - File access restrictions based on user roles
 
 ### Data Protection
+
 - SQL injection prevention with parameterized queries
 - Input validation and sanitization
 - CORS configuration
@@ -231,12 +252,14 @@ The project includes comprehensive testing setup with unit tests for models and 
 ## 📚 API Documentation
 
 ### Authentication Flow
+
 1. User registers/logs in via `/api/users/register` or `/api/users/login`
 2. Server returns JWT token
 3. Client includes token in Authorization header: `Bearer <token>`
 4. Server validates token on protected routes
 
 ### File Upload Flow
+
 1. Client requests presigned URL from appropriate endpoint
 2. Server generates secure upload token and MinIO presigned URL
 3. Client uploads file directly to MinIO using presigned URL
@@ -244,18 +267,20 @@ The project includes comprehensive testing setup with unit tests for models and 
 5. Server verifies upload token and creates database record
 
 ### Permission System
+
 - **Teachers**: Full course management, can create/edit/delete all resources
 - **TAs**: Can grade assignments, manage materials, moderate discussions
 - **Students**: Can view materials, submit assignments, participate in discussions
 
-
 ## 🐳 Docker Configuration
 
 ### Available Compose Files
+
 - `docker/docker-compose.yml` - Development setup with exposed ports
 - `docker/docker-compose.npm.yml` - Production setup with Nginx Proxy Manager
 
 ### Services Included
+
 - **Frontend**: React application served via Nginx
 - **Backend API**: Node.js/Express server
 - **PostgreSQL**: Primary database with initialization scripts
