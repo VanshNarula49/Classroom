@@ -248,7 +248,6 @@ The project includes comprehensive testing setup with unit tests for models and 
 - **TAs**: Can grade assignments, manage materials, moderate discussions
 - **Students**: Can view materials, submit assignments, participate in discussions
 
-## 🚀 Deployment Options
 
 ## 🐳 Docker Configuration
 
