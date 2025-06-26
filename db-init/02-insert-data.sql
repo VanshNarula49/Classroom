@@ -164,7 +164,7 @@ COPY public.comment (commentid, content, postedby, postedat, parentid, parenttyp
 --
 
 COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM stdin;
-2	1	professor	2025-02-16 18:56:34
+2	1	Professor	2025-02-16 18:56:34
 5	1	student	2025-02-20 10:15:00
 7	1	student	2025-02-20 10:15:00
 9	1	student	2025-02-20 10:15:00
@@ -175,7 +175,7 @@ COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM st
 19	1	student	2025-02-20 10:15:00
 20	1	student	2025-02-20 10:15:00
 55  1   TA 2025-02-20 10:15:00
-3	2	professor	2025-02-16 18:56:34
+3	2	Professor	2025-02-16 18:56:34
 4	2	student	2025-02-20 10:16:00
 6	2	student	2025-02-20 10:16:00
 8	2	student	2025-02-20 10:16:00
@@ -186,7 +186,7 @@ COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM st
 22	2	student	2025-02-20 10:16:00
 23	2	student	2025-02-20 10:16:00
 56  2   TA 2025-02-20 10:16:00
-1	3	professor	2025-02-16 18:56:34
+1	3	Professor	2025-02-16 18:56:34
 6	3	student	2025-02-21 09:05:00
 10	3	student	2025-02-21 09:05:00
 12	3	student	2025-02-21 09:05:00
@@ -197,7 +197,7 @@ COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM st
 24	3	student	2025-02-21 09:05:00
 25	3	student	2025-02-21 09:05:00
 57  3   TA 2025-02-21 10:17:00
-2	4	professor	2025-02-16 18:56:34
+2	4	Professor	2025-02-16 18:56:34
 5	4	student	2025-02-21 09:10:00
 8	4	student	2025-02-21 09:10:00
 11	4	student	2025-02-21 09:10:00
@@ -208,7 +208,7 @@ COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM st
 26	4	student	2025-02-21 09:10:00
 28	4	student	2025-02-21 09:10:00
 58  4   TA 2025-02-21 10:18:00
-4	5	professor	2025-02-16 18:56:34
+4	5	Professor	2025-02-16 18:56:34
 1	5	student	2025-02-21 10:00:00
 6	5	student	2025-02-21 10:00:00
 7	5	student	2025-02-21 10:00:00
@@ -219,7 +219,7 @@ COPY public.courseparticipation (userid, courseid, role, enrollmentdate) FROM st
 22	5	student	2025-02-21 10:00:00
 29	5	student	2025-02-21 10:00:00
 59  5   TA 2025-02-21 10:19:00
-1	6	professor	2025-02-16 18:56:34
+1	6	Professor	2025-02-16 18:56:34
 5	6	student	2025-02-21 10:05:00
 8	6	student	2025-02-21 10:05:00
 11	6	student	2025-02-21 10:05:00
