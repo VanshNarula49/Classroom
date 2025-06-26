@@ -61,7 +61,7 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-background to-background/90 animate-fade-in">
       <Toaster position="top-right" richColors />
-      <Card className="w-full max-w-md shadow-lg p-6 bg-card rounded-xl animate-slide-up border-muted/30">
+      <Card className="w-full max-w-md shadow-lg bg-card rounded-xl animate-slide-up border-muted/30">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-background/20 rounded-xl opacity-50" />
         <CardHeader className="relative">
           {/* Logo Section */}
