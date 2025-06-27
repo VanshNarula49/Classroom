@@ -46,7 +46,7 @@ app.use('/comments', commentRoutes)
 app.use('/grades', gradeRoutes) // Register grade routes
 
 // Health check route (nginx will proxy /api/health to /health)
-app.get('/health', (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     message: 'Classroom API is running',
